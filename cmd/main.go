@@ -9,5 +9,6 @@ import "github.com/ereminiu/filmoteka/internal/app"
 // @host: localhost:3000
 
 func main() {
+	// test commit
 	app.Run()
 }
