@@ -15,7 +15,20 @@ func NewRouter(repos *db.Repositories) *http.ServeMux {
 
 	movieRouter := v1.NewMovieRouter(repos.Movie)
 
+	// User group
+	router.HandleFunc("POST /actor-list", empty)
+	router.HandleFunc("POST /search-movie", empty)
+	router.HandleFunc("POST /movie-list", movieRouter.GetAllMovies)
+
+	// Admin group
+	router.HandleFunc("POST /add-actor", empty)
+	router.HandleFunc("PUT /change-actor-field", empty)
+	router.HandleFunc("DELETE /delete-actor", empty)
+	router.HandleFunc("DELETE /delete-actor-field", empty)
 	router.HandleFunc("POST /add-movie", movieRouter.AddMovie)
+	router.HandleFunc("DELETE /delete-movie", empty)
+	router.HandleFunc("DELETE /delete-movie-field", empty)
+
 	router.HandleFunc("POST /hello", getReverseName)
 	router.Handle("/swagger/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:3000/swagger/doc.json")))
 
@@ -56,4 +69,7 @@ func getReverseName(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
+}
+
+func empty(w http.ResponseWriter, r *http.Request) {
 }

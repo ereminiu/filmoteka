@@ -16,6 +16,44 @@ func NewMovieRepository(db *sql.DB) *MovieRepository {
 	}
 }
 
+func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.MovieWithActors, error) {
+	sqlQuery := `SELECT m.id AS "movie_id",
+	    m.name AS "movie_name",
+	    m.description AS "movie_description",
+	    m.date AS "movie_date",
+	    m.rate AS "movie_rate",
+	    a.id AS "actor_id",
+	    a.name AS "actor_name",
+	    a.gender AS "actor_gender",
+	    a.birthday AS "actor_birthday"
+		FROM movies m
+		LEFT JOIN actors_to_movies am
+		ON am.movie_id = m.id
+		LEFT JOIN actors a
+		ON a.id = am.actor_id;
+	`
+	tx, err := mr.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := tx.Query(sqlQuery)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	var movies []m.MovieWithActors
+	for rows.Next() {
+		var movie m.MovieWithActors
+		if err := rows.Scan(&movie.MovieId, &movie.MovieName, &movie.MovieDescription, &movie.MovieDate,
+			&movie.MovieRate, &movie.ActorId, &movie.ActorName, &movie.ActorGender, &movie.ActorBirthday); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		movies = append(movies, movie)
+	}
+	return movies, tx.Commit()
+}
+
 func (mr *MovieRepository) CreateMovie(name, description, date string, rate int, actorIds []int) (int, error) {
 	sqlQuery := `INSERT INTO movies (name, description, date, rate) values ($1, $2, $3, $4) RETURNING id`
 	tx, err := mr.db.Begin()
@@ -48,16 +86,11 @@ func (mr *MovieRepository) DeleteMovie(id int) error {
 	return nil
 }
 
-func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.Movie, error) {
-	// возвращает список всех фильмов (название, описание, дата выпуска, рейтинг и СПИСОК АКТЕРОВ)
-	return nil, nil
-}
-
 func (mr *MovieRepository) SearchMovieByPattern(pattern string) ([]m.Movie, error) {
 	return nil, nil
 }
 
-func (mr *MovieRepository) SearchMovieByActorNamePattern(patter string) ([]m.Movie, error) {
+func (mr *MovieRepository) SearchMovieByActorNamePattern(pattern string) ([]m.Movie, error) {
 	return nil, nil
 }
 

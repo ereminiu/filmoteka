@@ -61,3 +61,38 @@ func (mr *MovieRouter) AddMovie(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 }
+
+type getAllMoviesInput struct {
+	SortBy string `json:"sort_by"`
+}
+
+func (mr *MovieRouter) GetAllMovies(w http.ResponseWriter, r *http.Request) {
+	var input getAllMoviesInput
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&input); err != nil {
+		logrus.Error(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	logrus.Println(input)
+
+	movies, err := mr.r.GetAllMovies(input.SortBy)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// TODO: переложить output в более читаемую форму
+	jsonResponse, err := json.Marshal(movies)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+}
