@@ -1,0 +1,41 @@
+definitions:
+  app.userInput:
+    properties:
+      age:
+        type: integer
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: Filmoteka Application API
+paths:
+  /hello:
+    post:
+      consumes:
+      - application/json
+      description: reversing the given name
+      parameters:
+      - description: username and age
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/app.userInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.userInput'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get Reversed Name
+swagger: "2.0"

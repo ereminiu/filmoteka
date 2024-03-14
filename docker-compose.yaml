@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  filmoteka:
+    build: ./
+    command: ./wait-for-postgres.sh db ./filmoteka
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      - MODE=prod
+      - DB_PASSWORD=qwerty
+
+  db:
+    restart: always
+    image: postgres:latest
+    volumes:
+    - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=qwerty
+    ports:
+      - "5436:5432"
+
+volumes:
+  pgdata:
