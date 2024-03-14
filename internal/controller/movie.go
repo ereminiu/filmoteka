@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"github.com/ereminiu/filmoteka/internal/db"
-	"github.com/ereminiu/filmoteka/internal/models"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -17,11 +16,11 @@ func NewMovieRouter(r db.Movie) *MovieRouter {
 }
 
 type createMovieInput struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Date        string         `json:"date"`
-	Rate        int            `json:"rate"`
-	Actors      []models.Actor `json:"actors,omitempty"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Date        string `json:"date"`
+	Rate        int    `json:"rate"`
+	Actors      []int  `json:"actors,omitempty"`
 }
 
 func (mr *MovieRouter) AddMovie(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +34,7 @@ func (mr *MovieRouter) AddMovie(w http.ResponseWriter, r *http.Request) {
 	}
 	logrus.Println(input)
 
-	id, err := mr.r.CreateMovie(input.Name, input.Description, input.Date, input.Rate, make([]int, 0))
+	id, err := mr.r.CreateMovie(input.Name, input.Description, input.Date, input.Rate, input.Actors)
 	if err != nil {
 		logrus.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
