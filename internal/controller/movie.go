@@ -96,3 +96,45 @@ func (mr *MovieRouter) GetAllMovies(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 }
+
+type changeFieldInput struct {
+	MovieId  int    `json:"movie_id"`
+	Field    string `json:"field"`
+	NewValue string `json:"new_value"`
+}
+
+func (mr *MovieRouter) ChangeField(w http.ResponseWriter, r *http.Request) {
+	var input changeFieldInput
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&input); err != nil {
+		logrus.Error(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	logrus.Println(input)
+
+	err := mr.r.ChangeField(input.MovieId, input.Field, input.NewValue)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	output := struct {
+		Message string `json:"message"`
+	}{
+		Message: "Field is changed",
+	}
+
+	jsonResponse, err := json.Marshal(output)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+}

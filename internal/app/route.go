@@ -28,6 +28,7 @@ func NewRouter(repos *db.Repositories) *http.ServeMux {
 	router.HandleFunc("POST /add-movie", movieRouter.AddMovie)
 	router.HandleFunc("DELETE /delete-movie", empty)
 	router.HandleFunc("DELETE /delete-movie-field", empty)
+	router.HandleFunc("PUT /change-movie-field", movieRouter.ChangeField)
 
 	router.HandleFunc("POST /hello", getReverseName)
 	router.Handle("/swagger/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:3000/swagger/doc.json")))

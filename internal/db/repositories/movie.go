@@ -2,8 +2,9 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	m "github.com/ereminiu/filmoteka/internal/models"
-	"github.com/sirupsen/logrus"
+	"strconv"
 )
 
 type MovieRepository struct {
@@ -58,22 +59,72 @@ func (mr *MovieRepository) CreateMovie(name, description, date string, rate int,
 	sqlQuery := `INSERT INTO movies (name, description, date, rate) values ($1, $2, $3, $4) RETURNING id`
 	tx, err := mr.db.Begin()
 	if err != nil {
-		logrus.Error(err)
 		return -1, err
 	}
 	var movieId int
 	row := tx.QueryRow(sqlQuery, name, description, date, rate)
 	err = row.Scan(&movieId)
 	if err != nil {
-		logrus.Error(err)
 		tx.Rollback()
 		return -1, err
 	}
 	return movieId, tx.Commit()
 }
 
-func (mr *MovieRepository) ChangeField(field, newValue string) error {
-	return nil
+func (mr *MovieRepository) ChangeField(movieId int, field, newValue string) error {
+	sqlQuery, validatedValue, err := generateSqlQuery(field, newValue)
+	tx, err := mr.db.Begin()
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(sqlQuery, validatedValue, movieId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
+
+func generateSqlQuery(field, rawValue string) (string, any, error) {
+	var value any
+	sqlQuery := ``
+	switch field {
+	case "rate":
+		intvalue, err := strconv.Atoi(rawValue)
+		if err != nil {
+			return "", "", err
+		}
+		sqlQuery = `
+			UPDATE movies
+			SET rate=$1
+			WHERE id=$2
+		`
+		value = intvalue
+	case "date":
+		sqlQuery = `
+			UPDATE movies
+			SET date=$1
+			WHERE id=$2
+		`
+		value = rawValue
+	case "description":
+		sqlQuery = `
+			UPDATE movies
+			SET description=$1
+			WHERE id=$2
+		`
+		value = rawValue
+	case "name":
+		sqlQuery = `
+			UPDATE movies
+			SET name=$1
+			WHERE id=$2
+		`
+		value = rawValue
+	default:
+		return "", "", errors.New("unknown field")
+	}
+	return sqlQuery, value, nil
 }
 
 func (mr *MovieRepository) DeleteField(field string) error {

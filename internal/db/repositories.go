@@ -8,7 +8,7 @@ import (
 
 type Movie interface {
 	CreateMovie(name, description, date string, rate int, actorIds []int) (int, error)
-	ChangeField(field, newValue string) error
+	ChangeField(movieId int, field, newValue string) error
 	DeleteField(field string) error
 	DeleteMovie(id int) error
 	GetAllMovies(sortBy string) ([]m.MovieWithActors, error)
