@@ -14,6 +14,7 @@ func NewRouter(repos *db.Repositories) *http.ServeMux {
 	router := http.NewServeMux()
 
 	movieRouter := v1.NewMovieRouter(repos.Movie)
+	actorRouter := v1.NewActorRouter(repos.Actor)
 
 	// User group
 	router.HandleFunc("POST /actor-list", empty)
@@ -21,13 +22,13 @@ func NewRouter(repos *db.Repositories) *http.ServeMux {
 	router.HandleFunc("POST /movie-list", movieRouter.GetAllMovies)
 
 	// Admin group
-	router.HandleFunc("POST /add-actor", empty)
+	router.HandleFunc("POST /add-actor", actorRouter.AddActor)
 	router.HandleFunc("PUT /change-actor-field", empty)
 	router.HandleFunc("DELETE /delete-actor", empty)
 	router.HandleFunc("DELETE /delete-actor-field", empty)
 	router.HandleFunc("POST /add-movie", movieRouter.AddMovie)
 	router.HandleFunc("DELETE /delete-movie", movieRouter.DeleteMovie)
-	router.HandleFunc("DELETE /delete-movie-field", empty)
+	router.HandleFunc("DELETE /delete-movie-field", movieRouter.DeleteField)
 	router.HandleFunc("PUT /change-movie-field", movieRouter.ChangeField)
 
 	router.HandleFunc("POST /hello", getReverseName)

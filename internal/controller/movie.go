@@ -178,3 +178,59 @@ func (mr *MovieRouter) DeleteMovie(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 }
+
+type deleteFieldInput struct {
+	MovieId int    `json:"movie_id"`
+	Field   string `json:"field"`
+	ActorId int    `json:"actor_id,omitempty"`
+}
+
+func (mr *MovieRouter) DeleteField(w http.ResponseWriter, r *http.Request) {
+	var input deleteFieldInput
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&input); err != nil {
+		logrus.Error(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	logrus.Println(input)
+
+	var field any
+	if input.Field == "actor_id" {
+		field = input.ActorId
+	} else {
+		field = input.Field
+	}
+
+	err := mr.r.DeleteField(input.MovieId, field)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	output := struct {
+		Message string `json:"message"`
+	}{
+		Message: "Field is deleted",
+	}
+
+	jsonResponse, err := json.Marshal(output)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+}
+
+/*
+{
+	"field": "actor_id"
+	"actor_id": 228
+}
+*/

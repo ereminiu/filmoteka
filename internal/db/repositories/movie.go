@@ -3,8 +3,8 @@ package repositories
 import (
 	"database/sql"
 	"errors"
+	"github.com/ereminiu/filmoteka/internal/db/repositories/lib"
 	m "github.com/ereminiu/filmoteka/internal/models"
-	"strconv"
 )
 
 type MovieRepository struct {
@@ -68,11 +68,32 @@ func (mr *MovieRepository) CreateMovie(name, description, date string, rate int,
 		tx.Rollback()
 		return -1, err
 	}
+
+	err = mr.addActorsToMovie(tx, movieId, actorIds)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+
 	return movieId, tx.Commit()
 }
 
+// TODO: make this via batch insert
+func (mr *MovieRepository) addActorsToMovie(tx *sql.Tx, movieId int, actorIds []int) error {
+	for i := 0; i < len(actorIds); i++ {
+		actorId := actorIds[i]
+		sqlQuery := `INSERT INTO actors_to_movies (actor_id, movie_id) values ($1, $2)`
+		_, err := tx.Exec(sqlQuery, actorId, movieId)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return nil
+}
+
 func (mr *MovieRepository) ChangeField(movieId int, field, newValue string) error {
-	sqlQuery, validatedValue, err := generateSqlQuery(field, newValue)
+	sqlQuery, validatedValue, err := lib.GenerateChangeSqlQuery(field, newValue)
 	tx, err := mr.db.Begin()
 	if err != nil {
 		return err
@@ -85,50 +106,44 @@ func (mr *MovieRepository) ChangeField(movieId int, field, newValue string) erro
 	return tx.Commit()
 }
 
-func generateSqlQuery(field, rawValue string) (string, any, error) {
-	var value any
-	sqlQuery := ``
-	switch field {
-	case "rate":
-		intvalue, err := strconv.Atoi(rawValue)
+func (mr *MovieRepository) DeleteField(movieId int, field any) error {
+	switch field.(type) {
+	case int:
+		// actorId
+		// check if this actor is actually in this movie
+		tx, err := mr.db.Begin()
 		if err != nil {
-			return "", "", err
+			return err
 		}
-		sqlQuery = `
-			UPDATE movies
-			SET rate=$1
-			WHERE id=$2
-		`
-		value = intvalue
-	case "date":
-		sqlQuery = `
-			UPDATE movies
-			SET date=$1
-			WHERE id=$2
-		`
-		value = rawValue
-	case "description":
-		sqlQuery = `
-			UPDATE movies
-			SET description=$1
-			WHERE id=$2
-		`
-		value = rawValue
-	case "name":
-		sqlQuery = `
-			UPDATE movies
-			SET name=$1
-			WHERE id=$2
-		`
-		value = rawValue
+		actorId := field.(int)
+		err = mr.deleteActorFromMovie(tx, movieId, actorId)
+		if err != nil {
+			return err
+		}
+		return tx.Commit()
+	case string:
+		f := field.(string)
+		emptyValue := ""
+		if f == "rate" {
+			emptyValue = "0"
+		} else if f == "date" {
+			emptyValue = "1997-07-14"
+		}
+		return mr.ChangeField(movieId, f, emptyValue)
 	default:
-		return "", "", errors.New("unknown field")
+		return errors.New("invalid field type")
 	}
-	return sqlQuery, value, nil
 }
 
-func (mr *MovieRepository) DeleteField(field string) error {
-	// удаление информации о фильме -> удаление информации из таблицы акеторов, которые в нем играли
+func (mr *MovieRepository) deleteActorFromMovie(tx *sql.Tx, movieId, actorId int) error {
+	sqlQuery := `DELETE FROM actors_to_movies
+		WHERE actor_id=$1 AND movie_id=$2
+	`
+	_, err := tx.Exec(sqlQuery, actorId, movieId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 	return nil
 }
 
@@ -138,7 +153,7 @@ func (mr *MovieRepository) DeleteMovie(movieId int) error {
 	if err != nil {
 		return err
 	}
-	actorIds, err := getActorsByMovieId(tx, movieId)
+	actorIds, err := mr.getActorsByMovieId(tx, movieId)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -167,7 +182,7 @@ func (mr *MovieRepository) DeleteMovie(movieId int) error {
 	return tx.Commit()
 }
 
-func getActorsByMovieId(tx *sql.Tx, movieId int) ([]int, error) {
+func (mr *MovieRepository) getActorsByMovieId(tx *sql.Tx, movieId int) ([]int, error) {
 	sqlQuery := `SELECT a.id AS "actor_id"
 		FROM actors a 
 		JOIN actors_to_movies am 
