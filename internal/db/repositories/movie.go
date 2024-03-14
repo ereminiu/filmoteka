@@ -132,9 +132,65 @@ func (mr *MovieRepository) DeleteField(field string) error {
 	return nil
 }
 
-func (mr *MovieRepository) DeleteMovie(id int) error {
+func (mr *MovieRepository) DeleteMovie(movieId int) error {
 	// удаление информации о фильме -> удаление информации из таблицы акеторов, которые в нем играли
-	return nil
+	tx, err := mr.db.Begin()
+	if err != nil {
+		return err
+	}
+	actorIds, err := getActorsByMovieId(tx, movieId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	for i := 0; i < len(actorIds); i++ {
+		actorId := actorIds[i]
+		sqlQuery := `DELETE 
+			FROM actors_to_movies
+			WHERE actor_id=$1 AND movie_id=$2
+		`
+		_, err := tx.Exec(sqlQuery, actorId, movieId)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	sqlQuery := `DELETE 
+		FROM movies
+		WHERE id=$1
+	`
+	_, err = tx.Exec(sqlQuery, movieId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
+
+func getActorsByMovieId(tx *sql.Tx, movieId int) ([]int, error) {
+	sqlQuery := `SELECT a.id AS "actor_id"
+		FROM actors a 
+		JOIN actors_to_movies am 
+		ON am.actor_id = a.id
+		JOIN movies m 
+		ON m.id = am.movie_id
+		WHERE m.id = $1
+	`
+	rows, err := tx.Query(sqlQuery, movieId)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	var ids []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
 }
 
 func (mr *MovieRepository) SearchMovieByPattern(pattern string) ([]m.Movie, error) {
