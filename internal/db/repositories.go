@@ -6,6 +6,8 @@ import (
 	m "github.com/ereminiu/filmoteka/internal/models"
 )
 
+//go:generate mockgen -source=repositories.go -destination=mocks/mock.go
+
 type Movie interface {
 	CreateMovie(name, description, date string, rate int, actorIds []int) (int, error)
 	ChangeField(movieId int, field, newValue string) error
@@ -25,14 +27,21 @@ type Actor interface {
 	DeleteActor(actorId int) error
 }
 
+type Authorization interface {
+	CreateUser(name, username, passwordHash string) (int, error)
+	GetUser(username, passwordHash string) (int, error)
+}
+
 type Repositories struct {
+	Authorization
 	Movie
 	Actor
 }
 
 func NewRepositories(db *sql.DB) *Repositories {
 	return &Repositories{
-		Movie: repositories.NewMovieRepository(db),
-		Actor: repositories.NewActorRepository(db),
+		Authorization: repositories.NewAuthRepository(db),
+		Movie:         repositories.NewMovieRepository(db),
+		Actor:         repositories.NewActorRepository(db),
 	}
 }

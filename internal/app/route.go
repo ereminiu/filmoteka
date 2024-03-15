@@ -13,8 +13,13 @@ import (
 func NewRouter(repos *db.Repositories) *http.ServeMux {
 	router := http.NewServeMux()
 
+	authRouter := v1.NewAuthRouter(repos.Authorization)
 	movieRouter := v1.NewMovieRouter(repos.Movie)
 	actorRouter := v1.NewActorRouter(repos.Actor)
+
+	// Authorization
+	router.HandleFunc("POST /sign-up", authRouter.CreateUser)
+	router.HandleFunc("POST /sign-in", authRouter.GenerateToken)
 
 	// User group
 	router.HandleFunc("GET /actor-list", actorRouter.GetAllActors)

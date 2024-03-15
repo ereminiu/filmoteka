@@ -1,22 +1,29 @@
 CREATE TABLE movies (
-    id serial primary key,
-    name varchar(101) not null default '',
-    description text not null default '',
-    date DATE not null default '1997-07-14',
-    rate int not null default(0)
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(101) NOT NULL DEFAULT '',
+    description text NOT NULL DEFAULT '',
+    date DATE NOT NULL DEFAULT '1997-07-14',
+    rate INT NOT NULL DEFAULT(0)
 );
 
 CREATE TABLE actors (
-    id serial primary key,
-    name varchar(255) not null default '',
-    gender varchar(255) not null default '',
-    birthday varchar(255) not null default '1997-07-14',
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL DEFAULT '',
+    gender VARCHAR(255) NOT NULL DEFAULT '',
+    birthday VARCHAR(255) NOT NULL DEFAULT '1997-07-14',
     UNIQUE (name, birthday)
 );
 
 CREATE TABLE actors_to_movies (
-    id serial primary key,
-    actor_id int not null references actors,
-    movie_id int not null references movies,
-    unique (actor_id, movie_id)
+    id SERIAL PRIMARY KEY,
+    actor_id INT NOT NULL references actors,
+    movie_id INT NOT NULL references movies,
+    UNIQUE (actor_id, movie_id)
+);
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    uesrname VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL
 );

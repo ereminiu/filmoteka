@@ -3,6 +3,7 @@
 ## TODO
 
 ### API:
+- [ ] Добавить дженерик для output 
 - [X] Добавить актеров в /add-movie
 - [ ] Добавить batch-insert в /add-movie
 - [X] Добавить сортировку в /movie-list
