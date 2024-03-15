@@ -56,8 +56,7 @@ func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.MovieWithActors, err
 		tx.Rollback()
 		return nil, err
 	}
-	//var rawMovies []RawMovieWithActors
-	actorsToMovie := make(map[m.Movie][]m.Actor)
+	movieToActors := make(map[m.Movie][]m.Actor)
 	for rows.Next() {
 		var rawMovie RawMovieWithActors
 		if err := rows.Scan(&rawMovie.MovieId, &rawMovie.MovieName, &rawMovie.MovieDescription, &rawMovie.MovieDate,
@@ -69,11 +68,11 @@ func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.MovieWithActors, err
 			Date: rawMovie.MovieDescription, Rate: rawMovie.MovieRate}
 		actor := m.Actor{Id: rawMovie.ActorId, Name: rawMovie.ActorName, Gender: rawMovie.ActorGender,
 			Birthday: rawMovie.ActorBirthday}
-		actorsToMovie[movie] = append(actorsToMovie[movie], actor)
+		movieToActors[movie] = append(movieToActors[movie], actor)
 	}
 
 	movies := make([]m.MovieWithActors, 0)
-	for movie, actors := range actorsToMovie {
+	for movie, actors := range movieToActors {
 		movies = append(movies, m.NewMovieWithActors(movie, actors))
 	}
 

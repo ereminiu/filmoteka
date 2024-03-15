@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"errors"
+	m "github.com/ereminiu/filmoteka/internal/models"
 )
 
 type ActorRepository struct {
@@ -13,6 +14,66 @@ func NewActorRepository(db *sql.DB) *ActorRepository {
 	return &ActorRepository{
 		db: db,
 	}
+}
+
+type RawActorWithMovies struct {
+	ActorId          int    `db:"actor_id"`
+	ActorName        string `db:"actor_name"`
+	ActorGender      string `db:"actor_gender"`
+	ActorBirthday    string `db:"actor_birthday"`
+	MovieId          int    `db:"movie_id"`
+	MovieName        string `db:"movie_name"`
+	MovieDescription string `db:"movie_description"`
+	MovieDate        string `db:"movie_date"`
+	MovieRate        int    `db:"movie_rate"`
+}
+
+func (ar *ActorRepository) GetAllActors() ([]m.ActorWithMovies, error) {
+	sqlQuery := `SELECT a.id AS "actor_id", 
+		a.name AS "actor_name", 
+		a.gender AS "actor_gender",
+		a.birthday AS "actor_birthday",
+		m.id AS "movie_id",
+		m.name AS "movie_name",
+		m.description AS "movie_description",
+		m.date AS "movie_date",
+		m.rate AS "movie_rate"
+		FROM actors a
+		JOIN actors_to_movies am
+		ON am.actor_id = a.id
+		JOIN movies m
+		ON m.id = am.movie_id
+	`
+	tx, err := ar.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := tx.Query(sqlQuery)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	actorsToMovies := make(map[m.Actor][]m.Movie)
+	for rows.Next() {
+		var rawActor RawActorWithMovies
+		if err := rows.Scan(&rawActor.ActorId, &rawActor.ActorName, &rawActor.ActorGender, &rawActor.ActorBirthday, &rawActor.MovieId,
+			&rawActor.MovieName, &rawActor.MovieDescription, &rawActor.MovieDate, &rawActor.MovieRate); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		actor := m.Actor{Id: rawActor.ActorId, Name: rawActor.ActorName, Gender: rawActor.ActorGender,
+			Birthday: rawActor.ActorBirthday}
+		movie := m.Movie{Id: rawActor.MovieId, Name: rawActor.MovieName, Rate: rawActor.MovieRate,
+			Date: rawActor.MovieDate, Description: rawActor.MovieDescription}
+		actorsToMovies[actor] = append(actorsToMovies[actor], movie)
+	}
+
+	actors := make([]m.ActorWithMovies, 0)
+	for actor, movies := range actorsToMovies {
+		actors = append(actors, m.NewActorWithMovies(actor, movies))
+	}
+
+	return actors, tx.Commit()
 }
 
 func (ar *ActorRepository) CreateActor(name, gender, birthday string) (int, error) {

@@ -18,6 +18,7 @@ type Movie interface {
 }
 
 type Actor interface {
+	GetAllActors() ([]m.ActorWithMovies, error)
 	CreateActor(name, gender, birthday string) (int, error)
 	ChangeField(field, newValue string) error
 	DeleteField(field string) error

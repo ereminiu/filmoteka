@@ -17,7 +17,7 @@ func NewRouter(repos *db.Repositories) *http.ServeMux {
 	actorRouter := v1.NewActorRouter(repos.Actor)
 
 	// User group
-	router.HandleFunc("POST /actor-list", empty)
+	router.HandleFunc("GET /actor-list", actorRouter.GetAllActors)
 	router.HandleFunc("POST /search-movie", empty)
 	router.HandleFunc("POST /movie-list", movieRouter.GetAllMovies)
 
