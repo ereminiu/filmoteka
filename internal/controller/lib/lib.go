@@ -2,6 +2,7 @@ package lib
 
 import (
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
@@ -31,4 +32,21 @@ func GenerateToken(userId int) (string, error) {
 	})
 
 	return token.SignedString([]byte(signedString))
+}
+
+func ParseToken(inputToken string) (int, error) {
+	token, err := jwt.ParseWithClaims(inputToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+		return []byte(signedString), nil
+	})
+	if err != nil {
+		return -1, err
+	}
+	claims, ok := token.Claims.(*tokenClaims)
+	if !ok {
+		return -1, errors.New("invalid token claims type")
+	}
+	return claims.UserId, nil
 }

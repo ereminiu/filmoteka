@@ -27,15 +27,15 @@ func NewRouter(repos *db.Repositories) *http.ServeMux {
 	router.HandleFunc("POST /movie-list", movieRouter.GetAllMovies)
 
 	// Admin group
-	router.HandleFunc("POST /add-actor", actorRouter.AddActor)
-	router.HandleFunc("POST /add-actor-to-movie", movieRouter.AddActorToMovie)
+	router.HandleFunc("POST /add-actor", authRouter.UserIdentity(actorRouter.AddActor))
+	router.HandleFunc("POST /add-actor-to-movie", authRouter.UserIdentity(movieRouter.AddActorToMovie))
 	router.HandleFunc("PUT /change-actor-field", empty)
-	router.HandleFunc("DELETE /delete-actor", actorRouter.DeleteActor)
+	router.HandleFunc("DELETE /delete-actor", authRouter.UserIdentity(actorRouter.DeleteActor))
 	router.HandleFunc("DELETE /delete-actor-field", empty)
-	router.HandleFunc("POST /add-movie", movieRouter.AddMovie)
-	router.HandleFunc("DELETE /delete-movie", movieRouter.DeleteMovie)
-	router.HandleFunc("DELETE /delete-movie-field", movieRouter.DeleteField)
-	router.HandleFunc("PUT /change-movie-field", movieRouter.ChangeField)
+	router.HandleFunc("POST /add-movie", authRouter.UserIdentity(movieRouter.AddMovie))
+	router.HandleFunc("DELETE /delete-movie", authRouter.UserIdentity(movieRouter.DeleteMovie))
+	router.HandleFunc("DELETE /delete-movie-field", authRouter.UserIdentity(movieRouter.DeleteField))
+	router.HandleFunc("PUT /change-movie-field", authRouter.UserIdentity(movieRouter.ChangeField))
 
 	router.HandleFunc("POST /hello", getReverseName)
 	router.Handle("/swagger/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:3000/swagger/doc.json")))

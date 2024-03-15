@@ -1,11 +1,17 @@
 package controller
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/ereminiu/filmoteka/internal/controller/lib"
 	"github.com/ereminiu/filmoteka/internal/db"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strings"
+)
+
+const (
+	userCtx = "userId"
 )
 
 type AuthRouter struct {
@@ -102,4 +108,33 @@ func (ar *AuthRouter) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
+}
+
+func (ar *AuthRouter) UserIdentity(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		header := r.Header.Get("Authorization")
+		if header == "" {
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			return
+		}
+
+		headerParts := strings.Split(header, " ")
+		if len(headerParts) != 2 {
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			return
+		}
+
+		userId, err := lib.ParseToken(headerParts[1])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		ctx := r.Context()
+		req := r.WithContext(context.WithValue(ctx, userCtx, userId))
+		*r = *req
+
+		logrus.Printf("hello from middleware")
+		next(w, r)
+	}
 }

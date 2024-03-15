@@ -87,8 +87,7 @@ func (mr *MovieRepository) CreateMovie(name, description, date string, rate int,
 	}
 	var movieId int
 	row := tx.QueryRow(sqlQuery, name, description, date, rate)
-	err = row.Scan(&movieId)
-	if err != nil {
+	if err = row.Scan(&movieId); err != nil {
 		tx.Rollback()
 		return -1, err
 	}
