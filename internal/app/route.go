@@ -23,8 +23,9 @@ func NewRouter(repos *db.Repositories) *http.ServeMux {
 
 	// Admin group
 	router.HandleFunc("POST /add-actor", actorRouter.AddActor)
+	router.HandleFunc("POST /add-actor-to-movie", movieRouter.AddActorToMovie)
 	router.HandleFunc("PUT /change-actor-field", empty)
-	router.HandleFunc("DELETE /delete-actor", empty)
+	router.HandleFunc("DELETE /delete-actor", actorRouter.DeleteActor)
 	router.HandleFunc("DELETE /delete-actor-field", empty)
 	router.HandleFunc("POST /add-movie", movieRouter.AddMovie)
 	router.HandleFunc("DELETE /delete-movie", movieRouter.DeleteMovie)

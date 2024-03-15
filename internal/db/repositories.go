@@ -14,13 +14,14 @@ type Movie interface {
 	GetAllMovies(sortBy string) ([]m.MovieWithActors, error)
 	SearchMovieByPattern(pattern string) ([]m.Movie, error)
 	SearchMovieByActorNamePattern(pattern string) ([]m.Movie, error)
+	AddActorToMovie(actorId, movieId int) error
 }
 
 type Actor interface {
 	CreateActor(name, gender, birthday string) (int, error)
 	ChangeField(field, newValue string) error
 	DeleteField(field string) error
-	DeleteActor(name string) error
+	DeleteActor(actorId int) error
 }
 
 type Repositories struct {

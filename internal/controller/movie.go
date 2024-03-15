@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ereminiu/filmoteka/internal/db"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -213,6 +214,47 @@ func (mr *MovieRouter) DeleteField(w http.ResponseWriter, r *http.Request) {
 		Message string `json:"message"`
 	}{
 		Message: "Field is deleted",
+	}
+
+	jsonResponse, err := json.Marshal(output)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+}
+
+type addActorToMovieInput struct {
+	ActorId int `json:"actor_id"`
+	MovieId int `json:"movie_id"`
+}
+
+func (mr *MovieRouter) AddActorToMovie(w http.ResponseWriter, r *http.Request) {
+	var input addActorToMovieInput
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&input); err != nil {
+		logrus.Error(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	logrus.Println(input)
+
+	err := mr.r.AddActorToMovie(input.ActorId, input.MovieId)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	output := struct {
+		Message string `json:"message"`
+	}{
+		Message: fmt.Sprintf("Actor %d added to the movie %d", input.ActorId, input.MovieId),
 	}
 
 	jsonResponse, err := json.Marshal(output)

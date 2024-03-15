@@ -3,7 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"errors"
-	"github.com/ereminiu/filmoteka/internal/db/repositories/lib"
+	"fmt"
 	m "github.com/ereminiu/filmoteka/internal/models"
 )
 
@@ -17,22 +17,36 @@ func NewMovieRepository(db *sql.DB) *MovieRepository {
 	}
 }
 
+type RawMovieWithActors struct {
+	MovieId          int    `db:"movie_id"`
+	MovieName        string `db:"movie_name"`
+	MovieDescription string `db:"movie_description"`
+	MovieDate        string `db:"movie_date"`
+	MovieRate        int    `db:"movie_rate"`
+	ActorId          int    `db:"actor_id"`
+	ActorName        string `db:"actor_name"`
+	ActorGender      string `db:"actor_gender"`
+	ActorBirthday    string `db:"actor_birthday"`
+}
+
 func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.MovieWithActors, error) {
+	// sortBy : {}
+	//sqlQuery := "SELECT m.id AS movie_id FROM movies m " + fmt.Sprintf("ORDER BY %s", sortBy)
 	sqlQuery := `SELECT m.id AS "movie_id",
-	    m.name AS "movie_name",
-	    m.description AS "movie_description",
-	    m.date AS "movie_date",
-	    m.rate AS "movie_rate",
-	    a.id AS "actor_id",
-	    a.name AS "actor_name",
-	    a.gender AS "actor_gender",
-	    a.birthday AS "actor_birthday"
+	   m.name AS "movie_name",
+	   m.description AS "movie_description",
+	   m.date AS "movie_date",
+	   m.rate AS "movie_rate",
+	   a.id AS "actor_id",
+	   a.name AS "actor_name",
+	   a.gender AS "actor_gender",
+	   a.birthday AS "actor_birthday"
 		FROM movies m
 		LEFT JOIN actors_to_movies am
 		ON am.movie_id = m.id
 		LEFT JOIN actors a
-		ON a.id = am.actor_id;
-	`
+		ON a.id = am.actor_id
+	` + fmt.Sprintf("ORDER BY %s", sortBy)
 	tx, err := mr.db.Begin()
 	if err != nil {
 		return nil, err
@@ -42,16 +56,27 @@ func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.MovieWithActors, err
 		tx.Rollback()
 		return nil, err
 	}
-	var movies []m.MovieWithActors
+	//var rawMovies []RawMovieWithActors
+	actorsToMovie := make(map[m.Movie][]m.Actor)
 	for rows.Next() {
-		var movie m.MovieWithActors
-		if err := rows.Scan(&movie.MovieId, &movie.MovieName, &movie.MovieDescription, &movie.MovieDate,
-			&movie.MovieRate, &movie.ActorId, &movie.ActorName, &movie.ActorGender, &movie.ActorBirthday); err != nil {
+		var rawMovie RawMovieWithActors
+		if err := rows.Scan(&rawMovie.MovieId, &rawMovie.MovieName, &rawMovie.MovieDescription, &rawMovie.MovieDate,
+			&rawMovie.MovieRate, &rawMovie.ActorId, &rawMovie.ActorName, &rawMovie.ActorGender, &rawMovie.ActorBirthday); err != nil {
 			tx.Rollback()
 			return nil, err
 		}
-		movies = append(movies, movie)
+		movie := m.Movie{Id: rawMovie.MovieId, Name: rawMovie.MovieName, Description: rawMovie.MovieDescription,
+			Date: rawMovie.MovieDescription, Rate: rawMovie.MovieRate}
+		actor := m.Actor{Id: rawMovie.ActorId, Name: rawMovie.ActorName, Gender: rawMovie.ActorGender,
+			Birthday: rawMovie.ActorBirthday}
+		actorsToMovie[movie] = append(actorsToMovie[movie], actor)
 	}
+
+	movies := make([]m.MovieWithActors, 0)
+	for movie, actors := range actorsToMovie {
+		movies = append(movies, m.NewMovieWithActors(movie, actors))
+	}
+
 	return movies, tx.Commit()
 }
 
@@ -93,12 +118,12 @@ func (mr *MovieRepository) addActorsToMovie(tx *sql.Tx, movieId int, actorIds []
 }
 
 func (mr *MovieRepository) ChangeField(movieId int, field, newValue string) error {
-	sqlQuery, validatedValue, err := lib.GenerateChangeSqlQuery(field, newValue)
+	sqlQuery := `UPDATE movies ` + fmt.Sprintf(`SET %s=$1 WHERE id=$2`, field)
 	tx, err := mr.db.Begin()
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(sqlQuery, validatedValue, movieId)
+	_, err = tx.Exec(sqlQuery, newValue, movieId)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -206,6 +231,20 @@ func (mr *MovieRepository) getActorsByMovieId(tx *sql.Tx, movieId int) ([]int, e
 		ids = append(ids, id)
 	}
 	return ids, nil
+}
+
+func (mr *MovieRepository) AddActorToMovie(actorId, movieId int) error {
+	sqlQuery := `INSERT INTO actors_to_movies (actor_id, movie_id) VALUES ($1, $2)`
+	tx, err := mr.db.Begin()
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(sqlQuery, actorId, movieId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func (mr *MovieRepository) SearchMovieByPattern(pattern string) ([]m.Movie, error) {

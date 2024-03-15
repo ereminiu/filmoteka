@@ -60,6 +60,67 @@ func (ar *ActorRepository) DeleteField(field string) error {
 	return nil
 }
 
-func (ar *ActorRepository) DeleteActor(name string) error {
+func (ar *ActorRepository) DeleteActor(actorId int) error {
+	tx, err := ar.db.Begin()
+	if err != nil {
+		return err
+	}
+	err = ar.deleteMoviesByActorId(tx, actorId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	sqlQuery := `DELETE FROM actors
+		WHERE id=$1
+	`
+	_, err = tx.Exec(sqlQuery, actorId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
+
+func (ar *ActorRepository) getMoviesByActorId(tx *sql.Tx, actorId int) ([]int, error) {
+	sqlQuery := `SELECT m.id
+		FROM actors a
+		JOIN actors_to_movies am
+		ON am.actor_id = a.id
+		JOIN movies m
+		ON m.id = am.movie_id
+		WHERE a.id=$1
+	`
+	rows, err := tx.Query(sqlQuery, actorId)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	movieIds := make([]int, 0)
+	for rows.Next() {
+		var movieId int
+		err = rows.Scan(&movieId)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		movieIds = append(movieIds, movieId)
+	}
+	return movieIds, nil
+}
+
+func (ar *ActorRepository) deleteMoviesByActorId(tx *sql.Tx, actorId int) error {
+	movieIds, err := ar.getMoviesByActorId(tx, actorId)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(movieIds); i++ {
+		movieId := movieIds[i]
+		sqlQuery := `DELETE FROM actors_to_movies WHERE actor_id=$1 AND movie_id=$2`
+		_, err = tx.Exec(sqlQuery, actorId, movieId)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
 	return nil
 }

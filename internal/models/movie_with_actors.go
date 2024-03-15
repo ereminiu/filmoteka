@@ -1,15 +1,23 @@
 package models
 
 type MovieWithActors struct {
-	MovieId          int    `db:"movie_id"`
-	MovieName        string `db:"movie_name"`
-	MovieDescription string `db:"movie_description"`
-	MovieDate        string `db:"movie_date"`
-	MovieRate        int    `db:"movie_rate"`
-	ActorId          int    `db:"actor_id"`
-	ActorName        string `db:"actor_name"`
-	ActorGender      string `db:"actor_gender"`
-	ActorBirthday    string `db:"actor_birthday"`
+	MovieId          int     `json:"movie_id"`
+	MovieName        string  `json:"movie_name"`
+	MovieDescription string  `json:"movie_description"`
+	MovieDate        string  `json:"movie_date"`
+	MovieRate        int     `json:"movie_rate"`
+	Actors           []Actor `json:"actors"`
+}
+
+func NewMovieWithActors(movie Movie, actors []Actor) MovieWithActors {
+	return MovieWithActors{
+		MovieId:          movie.Id,
+		MovieName:        movie.Name,
+		MovieDescription: movie.Description,
+		MovieDate:        movie.Date,
+		MovieRate:        movie.Rate,
+		Actors:           actors,
+	}
 }
 
 /*

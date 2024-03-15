@@ -3,14 +3,14 @@
 ## TODO
 
 ### API:
-- [ ] Добавить актеров в /add-movie
+- [X] Добавить актеров в /add-movie
 - [ ] Добавить batch-insert в /add-movie
 - [ ] Добавить сортировку в /movie-list
 - [ ] Получение списка актеров /actor-list
-- [ ] Добавление актера /add-actor
-- [ ] Удаление Актера /delete-actor
+- [X] Добавление актера /add-actor
+- [X] Удаление Актера /delete-actor
 - [ ] Удаление поля у Актера /delete-actor-field
-- [ ] Удаление поля у Фильма /delete-movie-field
+- [X] Удаление поля у Фильма /delete-movie-field
 - [ ] Добавить функции валидации 
 
 ### DevOPS:
