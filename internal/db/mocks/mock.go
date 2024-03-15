@@ -244,3 +244,56 @@ func (mr *MockActorMockRecorder) GetAllActors() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllActors", reflect.TypeOf((*MockActor)(nil).GetAllActors))
 }
+
+// MockAuthorization is a mock of Authorization interface.
+type MockAuthorization struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthorizationMockRecorder
+}
+
+// MockAuthorizationMockRecorder is the mock recorder for MockAuthorization.
+type MockAuthorizationMockRecorder struct {
+	mock *MockAuthorization
+}
+
+// NewMockAuthorization creates a new mock instance.
+func NewMockAuthorization(ctrl *gomock.Controller) *MockAuthorization {
+	mock := &MockAuthorization{ctrl: ctrl}
+	mock.recorder = &MockAuthorizationMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthorization) EXPECT() *MockAuthorizationMockRecorder {
+	return m.recorder
+}
+
+// CreateUser mocks base method.
+func (m *MockAuthorization) CreateUser(name, username, passwordHash string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", name, username, passwordHash)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockAuthorizationMockRecorder) CreateUser(name, username, passwordHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockAuthorization)(nil).CreateUser), name, username, passwordHash)
+}
+
+// GetUser mocks base method.
+func (m *MockAuthorization) GetUser(username, passwordHash string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUser", username, passwordHash)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUser indicates an expected call of GetUser.
+func (mr *MockAuthorizationMockRecorder) GetUser(username, passwordHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockAuthorization)(nil).GetUser), username, passwordHash)
+}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/ereminiu/filmoteka/internal/controller/lib"
 	"github.com/ereminiu/filmoteka/internal/db"
+	merrors "github.com/ereminiu/filmoteka/internal/db/errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
@@ -45,8 +46,7 @@ func (ar *AuthRouter) GenerateToken(w http.ResponseWriter, r *http.Request) {
 	userId, err := ar.r.GetUser(input.Username, input.Password)
 	if err != nil {
 		logrus.Error(err)
-		// TODO: add verbose error
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, merrors.ErrAuthentication.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (ar *AuthRouter) CreateUser(w http.ResponseWriter, r *http.Request) {
 	id, err := ar.r.CreateUser(input.Name, input.Username, input.Password)
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, merrors.ErrUserCreation.Error(), http.StatusInternalServerError)
 		return
 	}
 

@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"github.com/ereminiu/filmoteka/internal/db"
+	merrors "github.com/ereminiu/filmoteka/internal/db/errors"
 	m "github.com/ereminiu/filmoteka/internal/models"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -72,7 +73,7 @@ func (ar *ActorRouter) DeleteActor(w http.ResponseWriter, r *http.Request) {
 	err := ar.r.DeleteActor(input.Id)
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, merrors.ErrDatabase.Error(), http.StatusInternalServerError)
 		return
 	}
 
