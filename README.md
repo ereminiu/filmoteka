@@ -6,7 +6,7 @@
 - [X] Добавить актеров в /add-movie
 - [ ] Добавить batch-insert в /add-movie
 - [X] Добавить сортировку в /movie-list
-- [ ] Получение списка актеров /actor-list
+- [X] Получение списка актеров /actor-list
 - [X] Добавление актера /add-actor
 - [X] Удаление Актера /delete-actor
 - [ ] Удаление поля у Актера /delete-actor-field
