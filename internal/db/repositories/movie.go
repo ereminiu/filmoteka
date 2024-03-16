@@ -65,7 +65,7 @@ func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.MovieWithActors, err
 			return nil, err
 		}
 		movie := m.Movie{Id: rawMovie.MovieId, Name: rawMovie.MovieName, Description: rawMovie.MovieDescription,
-			Date: rawMovie.MovieDescription, Rate: rawMovie.MovieRate}
+			Date: rawMovie.MovieDate, Rate: rawMovie.MovieRate}
 		actor := m.Actor{Id: rawMovie.ActorId, Name: rawMovie.ActorName, Gender: rawMovie.ActorGender,
 			Birthday: rawMovie.ActorBirthday}
 		movieToActors[movie] = append(movieToActors[movie], actor)

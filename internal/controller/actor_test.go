@@ -157,7 +157,6 @@ func TestActorRouter_GetAllActors(t *testing.T) {
 	testTable := []struct {
 		name                 string
 		mockBehavior         mockBehavior
-		response             m.ActorWithMovies
 		expectedStatusCode   int
 		expectedResponseBody string
 	}{
@@ -177,19 +176,6 @@ func TestActorRouter_GetAllActors(t *testing.T) {
 						Rate:        0,
 					}}},
 				}, nil)
-			},
-			response: m.ActorWithMovies{
-				ActorId:       26,
-				ActorName:     "Valera",
-				ActorGender:   "male",
-				ActorBirthday: "1988-01-01",
-				Movies: []m.Movie{{
-					Id:          26,
-					Name:        "Сумерки 4",
-					Description: "Кино для настоящих мужчин",
-					Date:        "2012-10-10T00:00:00Z",
-					Rate:        0,
-				}},
 			},
 			expectedStatusCode:   200,
 			expectedResponseBody: `[{"actor_id":26,"actor_name":"Valera","actor_gender":"male","actor_birthday":"1988-01-01","movies":[{"Id":11,"Name":"Сумерки 4","Description":"Кино для настоящих мужчин","Date":"2012-10-10T00:00:00Z","Rate":0}]}]`,

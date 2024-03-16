@@ -17,6 +17,18 @@ func NewActorRouter(r db.Actor) *ActorRouter {
 	return &ActorRouter{r: r}
 }
 
+// @Summary Create Actor
+// @Security ApiKeyAuth
+// @Tags actors
+// @Description create actor
+// @ID add-actor
+// @Accept  json
+// @Produce  json
+// @Param input body models.Actor true "actor data"
+// @Success 200 {integer} integer 1
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /add-actor [post]
 func (ar *ActorRouter) AddActor(w http.ResponseWriter, r *http.Request) {
 	var input m.Actor
 
@@ -35,10 +47,7 @@ func (ar *ActorRouter) AddActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output := struct {
-		Id      int    `json:"id"`
-		Message string `json:"message"`
-	}{
+	output := outputWithId{
 		Id:      id,
 		Message: "Actor is added",
 	}
@@ -59,6 +68,18 @@ type deleteActorInput struct {
 	Id int `json:"actor_id"`
 }
 
+// @Summary Delete Actor
+// @Security ApiKeyAuth
+// @Tags actors
+// @Description delete actor by id
+// @ID delete-actor
+// @Accept  json
+// @Produce  json
+// @Param input body deleteActorInput true "actor_id"
+// @Success 200 {object} outputWithMessage
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /delete-actor [delete]
 func (ar *ActorRouter) DeleteActor(w http.ResponseWriter, r *http.Request) {
 	var input deleteActorInput
 
@@ -77,11 +98,7 @@ func (ar *ActorRouter) DeleteActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output := struct {
-		Message string `json:"message"`
-	}{
-		Message: "Actor is removed",
-	}
+	output := outputWithMessage{Message: "Actor is removed"}
 
 	jsonResponse, err := json.Marshal(output)
 	if err != nil {
@@ -95,11 +112,21 @@ func (ar *ActorRouter) DeleteActor(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
+// @Summary Get All Actors
+// @Tags actors
+// @Description get all actors
+// @ID get-all-actors
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} []models.ActorWithMovies
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure default {string} string "error"
+// @Router /actor-list [get]
 func (ar *ActorRouter) GetAllActors(w http.ResponseWriter, r *http.Request) {
 	actors, err := ar.r.GetAllActors()
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 

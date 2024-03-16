@@ -31,6 +31,18 @@ type createUserInput struct {
 	Password string `json:"password"`
 }
 
+// @Summary SignIn
+// @Tags auth
+// @Description login
+// @ID login
+// @Accept  json
+// @Produce  json
+// @Param input body createUserInput true "credentials"
+// @Success 200 {string} string "token"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal error"
+// @Failure default {string} string "error"
+// @Router /sign-in [post]
 func (ar *AuthRouter) GenerateToken(w http.ResponseWriter, r *http.Request) {
 	var input createUserInput
 
@@ -50,7 +62,8 @@ func (ar *AuthRouter) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := lib.GenerateToken(userId)
+	userRole := lib.ParseUserRole(input.Username)
+	token, err := lib.GenerateToken(userId, userRole)
 	if err != nil {
 		logrus.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -66,11 +79,24 @@ func (ar *AuthRouter) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logrus.Println("Success")
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 }
 
+// @Summary SignUp
+// @Tags auth
+// @Description create account
+// @Id create-account
+// @Accept json
+// @Produce json
+// @Param input body createUserInput true "name username password"
+// @Success 200 {object} outputWithId
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /sign-up [post]
 func (ar *AuthRouter) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var input createUserInput
 
@@ -90,13 +116,13 @@ func (ar *AuthRouter) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output := struct {
-		Id      int    `json:"id"`
-		Message string `json:"message"`
-	}{
+	output := outputWithId{
 		Id:      id,
 		Message: "User is created",
 	}
+
+	logrus.Println("Success")
+	logrus.Println(output)
 
 	jsonResponse, err := json.Marshal(output)
 	if err != nil {
@@ -112,6 +138,7 @@ func (ar *AuthRouter) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (ar *AuthRouter) UserIdentity(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logrus.Printf("check authorization")
 		header := r.Header.Get("Authorization")
 		if header == "" {
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
@@ -120,13 +147,20 @@ func (ar *AuthRouter) UserIdentity(next http.HandlerFunc) http.HandlerFunc {
 
 		headerParts := strings.Split(header, " ")
 		if len(headerParts) != 2 {
+			logrus.Error("invalid auth-header")
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
 
-		userId, err := lib.ParseToken(headerParts[1])
+		userId, userRole, err := lib.ParseToken(headerParts[1])
 		if err != nil {
+			logrus.Error(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if userRole != "admin" {
+			logrus.Error("not enough rights")
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
 
@@ -134,7 +168,7 @@ func (ar *AuthRouter) UserIdentity(next http.HandlerFunc) http.HandlerFunc {
 		req := r.WithContext(context.WithValue(ctx, userCtx, userId))
 		*r = *req
 
-		logrus.Printf("hello from middleware")
+		logrus.Printf("user is authorized as admin")
 		next(w, r)
 	}
 }

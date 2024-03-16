@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"strings"
 	"time"
 )
 
@@ -20,21 +21,23 @@ func GeneratePasswordHash(password string) string {
 
 type tokenClaims struct {
 	jwt.RegisteredClaims
-	UserId int `json:"user_id"`
+	UserId   int `json:"user_id"`
+	UserRole string
 }
 
-func GenerateToken(userId int) (string, error) {
+func GenerateToken(userId int, userRole string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{jwt.RegisteredClaims{
 		ExpiresAt: &jwt.NumericDate{Time: time.Now().Add(12 * time.Hour)},
 		IssuedAt:  &jwt.NumericDate{Time: time.Now()},
 	},
 		userId,
+		userRole,
 	})
 
 	return token.SignedString([]byte(signedString))
 }
 
-func ParseToken(inputToken string) (int, error) {
+func ParseToken(inputToken string) (int, string, error) {
 	token, err := jwt.ParseWithClaims(inputToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -42,11 +45,18 @@ func ParseToken(inputToken string) (int, error) {
 		return []byte(signedString), nil
 	})
 	if err != nil {
-		return -1, err
+		return -1, "", err
 	}
 	claims, ok := token.Claims.(*tokenClaims)
 	if !ok {
-		return -1, errors.New("invalid token claims type")
+		return -1, "", errors.New("invalid token claims type")
 	}
-	return claims.UserId, nil
+	return claims.UserId, claims.UserRole, nil
+}
+
+func ParseUserRole(username string) string {
+	if strings.HasPrefix(username, "admin_") {
+		return "admin"
+	}
+	return "user"
 }

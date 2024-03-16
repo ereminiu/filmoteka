@@ -35,10 +35,10 @@ func TestAuthRouter_GenerateToken(t *testing.T) {
 			name: "OK",
 			input: input{
 				name:     "Kai'sa",
-				username: "kaisa",
+				username: "admin_kaisa",
 				password: "qwerty",
 			},
-			inputBody: `{"name":"Kai'sa'","username":"kaisa","password":"qwerty"}`,
+			inputBody: `{"name":"Kai'sa'","username":"admin_kaisa","password":"qwerty"}`,
 			mockBehavior: func(s *mock_db.MockAuthorization, username, password string) {
 				passwordHash := lib.GeneratePasswordHash(password)
 				s.EXPECT().GetUser(username, passwordHash).Return(1, nil)
@@ -56,6 +56,22 @@ func TestAuthRouter_GenerateToken(t *testing.T) {
 			mockBehavior: func(s *mock_db.MockAuthorization, username, password string) {
 				passwordHash := lib.GeneratePasswordHash(password)
 				s.EXPECT().GetUser(username, passwordHash).Return(-1, merrors.ErrAuthentication)
+			},
+			expectedStatusCode: 500,
+			wantError:          true,
+			expectedError:      merrors.ErrAuthentication,
+		},
+		{
+			name: "Action Forbidden",
+			input: input{
+				name:     "Kai'sa",
+				username: "kaisa",
+				password: "qwerty",
+			},
+			inputBody: `{"name":"Kai'sa'","username":"kaisa","password":"qwerty"}`,
+			mockBehavior: func(s *mock_db.MockAuthorization, username, password string) {
+				passwordHash := lib.GeneratePasswordHash(password)
+				s.EXPECT().GetUser(username, passwordHash).Return(-1, merrors.ErrStatusForbidden)
 			},
 			expectedStatusCode: 500,
 			wantError:          true,
@@ -86,7 +102,7 @@ func TestAuthRouter_GenerateToken(t *testing.T) {
 			// Assert
 			assert.Equal(t, tc.expectedStatusCode, w.Code)
 			if !tc.wantError {
-				token, _ := lib.GenerateToken(1)
+				token, _ := lib.GenerateToken(1, "admin")
 				expectedResponseBody := fmt.Sprintf(`{"token":"%s"}`, token)
 				assert.Equal(t, expectedResponseBody, w.Body.String())
 			} else {

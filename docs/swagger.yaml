@@ -6,10 +6,377 @@ definitions:
       name:
         type: string
     type: object
+  controller.addActorToMovieInput:
+    properties:
+      actor_id:
+        type: integer
+      movie_id:
+        type: integer
+    type: object
+  controller.changeFieldInput:
+    properties:
+      field:
+        type: string
+      movie_id:
+        type: integer
+      new_value:
+        type: string
+    type: object
+  controller.createMovieInput:
+    properties:
+      actors:
+        items:
+          type: integer
+        type: array
+      date:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      rate:
+        type: integer
+    type: object
+  controller.createUserInput:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  controller.deleteActorInput:
+    properties:
+      actor_id:
+        type: integer
+    type: object
+  controller.deleteFieldInput:
+    properties:
+      actor_id:
+        type: integer
+      field:
+        type: string
+      movie_id:
+        type: integer
+    type: object
+  controller.deleteMovieInput:
+    properties:
+      movie_id:
+        type: integer
+    type: object
+  controller.outputWithId:
+    properties:
+      id:
+        type: integer
+      message:
+        type: string
+    type: object
+  controller.outputWithMessage:
+    properties:
+      message:
+        type: string
+    type: object
+  models.Actor:
+    properties:
+      Birthday:
+        type: string
+      gender:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.ActorWithMovies:
+    properties:
+      actor_birthday:
+        type: string
+      actor_gender:
+        type: string
+      actor_id:
+        type: integer
+      actor_name:
+        type: string
+      movies:
+        items:
+          $ref: '#/definitions/models.Movie'
+        type: array
+    type: object
+  models.Movie:
+    properties:
+      date:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      rate:
+        type: integer
+    type: object
 info:
   contact: {}
   title: Filmoteka Application API
 paths:
+  /actor-list:
+    get:
+      consumes:
+      - application/json
+      description: get all actors
+      operationId: get-all-actors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ActorWithMovies'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+        default:
+          description: error
+          schema:
+            type: string
+      summary: Get All Actors
+      tags:
+      - actors
+  /add-actor:
+    post:
+      consumes:
+      - application/json
+      description: create actor
+      operationId: add-actor
+      parameters:
+      - description: actor data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Actor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Create Actor
+      tags:
+      - actors
+  /add-actor-to-movie:
+    post:
+      consumes:
+      - application/json
+      description: add actor to the movie by actor_id and movie_id
+      operationId: add-actor-to-movie
+      parameters:
+      - description: input data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.addActorToMovieInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.outputWithMessage'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Add actor to the movie
+      tags:
+      - movies
+  /add-movie:
+    post:
+      consumes:
+      - application/json
+      description: create movie
+      operationId: add-movie
+      parameters:
+      - description: movie data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.createMovieInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Create Movie
+      tags:
+      - movies
+  /change-movie-field:
+    put:
+      consumes:
+      - application/json
+      description: chanage movie field
+      operationId: change-movie-field
+      parameters:
+      - description: actor_id
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.changeFieldInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.outputWithMessage'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Change Movie Field
+      tags:
+      - movies
+  /delete-actor:
+    delete:
+      consumes:
+      - application/json
+      description: delete actor by id
+      operationId: delete-actor
+      parameters:
+      - description: actor_id
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.deleteActorInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.outputWithMessage'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Actor
+      tags:
+      - actors
+  /delete-movie:
+    delete:
+      consumes:
+      - application/json
+      description: delete movie by id
+      operationId: delete-movie
+      parameters:
+      - description: movie_id
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.deleteMovieInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.outputWithMessage'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Movie
+      tags:
+      - movies
+  /delete-movie-field:
+    delete:
+      consumes:
+      - application/json
+      description: delete movie field by field and movie_id
+      operationId: delete-movie-field
+      parameters:
+      - description: movie_id field
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.deleteFieldInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.outputWithMessage'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Actor
+      tags:
+      - movies
   /hello:
     post:
       consumes:
@@ -38,4 +405,70 @@ paths:
           schema:
             type: string
       summary: Get Reversed Name
+  /sign-in:
+    post:
+      consumes:
+      - application/json
+      description: login
+      operationId: login
+      parameters:
+      - description: credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.createUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal error
+          schema:
+            type: string
+        default:
+          description: error
+          schema:
+            type: string
+      summary: SignIn
+      tags:
+      - auth
+  /sign-up:
+    post:
+      consumes:
+      - application/json
+      description: create account
+      operationId: create-account
+      parameters:
+      - description: name username password
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.createUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.outputWithId'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: SignUp
+      tags:
+      - auth
 swagger: "2.0"

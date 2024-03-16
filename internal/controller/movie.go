@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ereminiu/filmoteka/internal/db"
+	merrors "github.com/ereminiu/filmoteka/internal/db/errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -24,6 +25,18 @@ type createMovieInput struct {
 	Actors      []int  `json:"actors,omitempty"`
 }
 
+// @Summary Create Movie
+// @Security ApiKeyAuth
+// @Tags movies
+// @Description create movie
+// @ID add-movie
+// @Accept  json
+// @Produce  json
+// @Param input body createMovieInput true "movie data"
+// @Success 200 {integer} integer 1
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /add-movie [post]
 func (mr *MovieRouter) AddMovie(w http.ResponseWriter, r *http.Request) {
 	var input createMovieInput
 
@@ -38,14 +51,11 @@ func (mr *MovieRouter) AddMovie(w http.ResponseWriter, r *http.Request) {
 	id, err := mr.r.CreateMovie(input.Name, input.Description, input.Date, input.Rate, input.Actors)
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, merrors.ErrMovieCreation.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	output := struct {
-		Id      int    `json:"id"`
-		Message string `json:"message"`
-	}{
+	output := outputWithId{
 		Id:      id,
 		Message: "Movie is added",
 	}
@@ -56,6 +66,8 @@ func (mr *MovieRouter) AddMovie(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	logrus.Printf("Success")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -80,11 +92,10 @@ func (mr *MovieRouter) GetAllMovies(w http.ResponseWriter, r *http.Request) {
 	movies, err := mr.r.GetAllMovies(input.SortBy)
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	// TODO: переложить output в более читаемую форму
 	jsonResponse, err := json.Marshal(movies)
 	if err != nil {
 		logrus.Error(err)
@@ -103,6 +114,18 @@ type changeFieldInput struct {
 	NewValue string `json:"new_value"`
 }
 
+// @Summary Change Movie Field
+// @Security ApiKeyAuth
+// @Tags movies
+// @Description chanage movie field
+// @ID change-movie-field
+// @Accept  json
+// @Produce  json
+// @Param input body changeFieldInput true "actor_id"
+// @Success 200 {object} outputWithMessage
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /change-movie-field [put]
 func (mr *MovieRouter) ChangeField(w http.ResponseWriter, r *http.Request) {
 	var input changeFieldInput
 
@@ -143,6 +166,18 @@ type deleteMovieInput struct {
 	MovieId int `json:"movie_id"`
 }
 
+// @Summary Delete Movie
+// @Security ApiKeyAuth
+// @Tags movies
+// @Description delete movie by id
+// @ID delete-movie
+// @Accept  json
+// @Produce  json
+// @Param input body deleteMovieInput true "movie_id"
+// @Success 200 {object} outputWithMessage
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /delete-movie [delete]
 func (mr *MovieRouter) DeleteMovie(w http.ResponseWriter, r *http.Request) {
 	var input deleteMovieInput
 
@@ -161,11 +196,7 @@ func (mr *MovieRouter) DeleteMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output := struct {
-		Message string `json:"message"`
-	}{
-		Message: "Movie is deleted",
-	}
+	output := outputWithMessage{Message: "Movie is deleted"}
 
 	jsonResponse, err := json.Marshal(output)
 	if err != nil {
@@ -185,6 +216,18 @@ type deleteFieldInput struct {
 	ActorId int    `json:"actor_id,omitempty"`
 }
 
+// @Summary Delete Actor
+// @Security ApiKeyAuth
+// @Tags movies
+// @Description delete movie field by field and movie_id
+// @ID delete-movie-field
+// @Accept  json
+// @Produce  json
+// @Param input body deleteFieldInput true "movie_id field"
+// @Success 200 {object} outputWithMessage
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /delete-movie-field [delete]
 func (mr *MovieRouter) DeleteField(w http.ResponseWriter, r *http.Request) {
 	var input deleteFieldInput
 
@@ -210,11 +253,7 @@ func (mr *MovieRouter) DeleteField(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output := struct {
-		Message string `json:"message"`
-	}{
-		Message: "Field is deleted",
-	}
+	output := outputWithMessage{Message: "Field is deleted"}
 
 	jsonResponse, err := json.Marshal(output)
 	if err != nil {
@@ -233,6 +272,18 @@ type addActorToMovieInput struct {
 	MovieId int `json:"movie_id"`
 }
 
+// @Summary Add actor to the movie
+// @Security ApiKeyAuth
+// @Tags movies
+// @Description add actor to the movie by actor_id and movie_id
+// @ID add-actor-to-movie
+// @Accept  json
+// @Produce  json
+// @Param input body addActorToMovieInput true "input data"
+// @Success 200 {object} outputWithMessage
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /add-actor-to-movie [post]
 func (mr *MovieRouter) AddActorToMovie(w http.ResponseWriter, r *http.Request) {
 	var input addActorToMovieInput
 
@@ -251,11 +302,7 @@ func (mr *MovieRouter) AddActorToMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output := struct {
-		Message string `json:"message"`
-	}{
-		Message: fmt.Sprintf("Actor %d added to the movie %d", input.ActorId, input.MovieId),
-	}
+	output := outputWithMessage{Message: fmt.Sprintf("Actor %d added to the movie %d", input.ActorId, input.MovieId)}
 
 	jsonResponse, err := json.Marshal(output)
 	if err != nil {
