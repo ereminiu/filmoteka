@@ -10,12 +10,18 @@ import (
 	"net/http"
 )
 
-func NewRouter(repos *db.Repositories) *http.ServeMux {
+func NewRouter(repos *db.Repositories, mig *db.Migrator) *http.ServeMux {
 	router := http.NewServeMux()
 
+	migrateRouter := v1.NewMigrateRouter(mig)
 	authRouter := v1.NewAuthRouter(repos.Authorization)
 	movieRouter := v1.NewMovieRouter(repos.Movie)
 	actorRouter := v1.NewActorRouter(repos.Actor)
+
+	// Migrations
+	router.HandleFunc("POST /migrate-up", migrateRouter.MigrateUp)
+	router.HandleFunc("POST /migrate-down", empty)
+	router.HandleFunc("POST /migrate-force", empty)
 
 	// Authorization
 	router.HandleFunc("POST /sign-up", authRouter.CreateUser)

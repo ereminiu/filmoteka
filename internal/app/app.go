@@ -11,11 +11,7 @@ import (
 	"time"
 )
 
-// TODO: add database connection
-
-func connection() (*sql.DB, error) {
-	config, err := config2.LoadConfigs("test")
-
+func connection(config *config2.Config) (*sql.DB, error) {
 	URL := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		config.Host, config.Port, config.Username, config.Password, config.DBName, config.SSLMode,
 	)
@@ -57,7 +53,19 @@ func Run() {
 	// set up logger
 	setUpLogger()
 
-	database, err := connection()
+	// load config
+	config, err := config2.LoadConfigs("test") // TODO: CHANGE IT TO "prod"
+	if err != nil {
+		logrus.Error(config)
+	}
+
+	// init migrator
+	migrator, err := db.NewMigrator(config)
+	if err != nil {
+		logrus.Fatalln(err)
+	}
+
+	database, err := connection(config)
 	if err != nil {
 		logrus.Fatalln(err)
 	}
@@ -66,7 +74,7 @@ func Run() {
 	repos := db.NewRepositories(database)
 
 	// Init router
-	router := NewRouter(repos)
+	router := NewRouter(repos, migrator)
 
 	runServer(router)
 }

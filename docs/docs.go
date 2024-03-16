@@ -461,6 +461,119 @@ const docTemplate = `{
                 }
             }
         },
+        "/migrate-down": {
+            "post": {
+                "description": "Apply to Migrate Down",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "migrations"
+                ],
+                "summary": "Migrate Down",
+                "operationId": "migrate-down",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.migrateOutput"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/migrate-force": {
+            "post": {
+                "description": "Apply to Migrate Force",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "migrations"
+                ],
+                "summary": "Migrate Force",
+                "operationId": "migrate-force",
+                "parameters": [
+                    {
+                        "description": "version param",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.migrateForceInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.migrateOutput"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/migrate-up": {
+            "post": {
+                "description": "Apply to Migrate Up",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "migrations"
+                ],
+                "summary": "Migrate Up",
+                "operationId": "migrate-up",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.migrateOutput"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/movie-list": {
             "post": {
                 "description": "Return All Movies",
@@ -774,6 +887,25 @@ const docTemplate = `{
                 }
             }
         },
+        "controller.migrateForceInput": {
+            "type": "object",
+            "properties": {
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "controller.migrateOutput": {
+            "type": "object",
+            "properties": {
+                "dirty": {
+                    "type": "boolean"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
         "controller.outputWithId": {
             "type": "object",
             "properties": {
@@ -890,14 +1022,21 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Host:             "localhost:3000",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Filmoteka Application API",
 	Description:      "",

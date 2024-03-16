@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   app.userInput:
     properties:
@@ -69,6 +70,18 @@ definitions:
     properties:
       sort_by:
         type: string
+    type: object
+  controller.migrateForceInput:
+    properties:
+      version:
+        type: integer
+    type: object
+  controller.migrateOutput:
+    properties:
+      dirty:
+        type: boolean
+      version:
+        type: integer
     type: object
   controller.outputWithId:
     properties:
@@ -145,6 +158,7 @@ definitions:
       movie_rate:
         type: integer
     type: object
+host: localhost:3000
 info:
   contact: {}
   title: Filmoteka Application API
@@ -434,6 +448,81 @@ paths:
           schema:
             type: string
       summary: Get Reversed Name
+  /migrate-down:
+    post:
+      description: Apply to Migrate Down
+      operationId: migrate-down
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.migrateOutput'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Migrate Down
+      tags:
+      - migrations
+  /migrate-force:
+    post:
+      consumes:
+      - application/json
+      description: Apply to Migrate Force
+      operationId: migrate-force
+      parameters:
+      - description: version param
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.migrateForceInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.migrateOutput'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Migrate Force
+      tags:
+      - migrations
+  /migrate-up:
+    post:
+      description: Apply to Migrate Up
+      operationId: migrate-up
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.migrateOutput'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Migrate Up
+      tags:
+      - migrations
   /movie-list:
     post:
       consumes:
@@ -566,4 +655,9 @@ paths:
       summary: SignUp
       tags:
       - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
