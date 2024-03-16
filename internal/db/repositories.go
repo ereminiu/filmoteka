@@ -14,9 +14,8 @@ type Movie interface {
 	DeleteField(movieId int, field any) error
 	DeleteMovie(movieId int) error
 	GetAllMovies(sortBy string) ([]m.MovieWithActors, error)
-	SearchMovieByPattern(pattern string) ([]m.Movie, error)
-	SearchMovieByActorNamePattern(pattern string) ([]m.Movie, error)
 	AddActorToMovie(actorId, movieId int) error
+	SearchMovie(moviePattern, actorPattern string) ([]m.MovieWithActors, error)
 }
 
 type Actor interface {

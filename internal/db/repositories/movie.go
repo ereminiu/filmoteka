@@ -30,8 +30,6 @@ type RawMovieWithActors struct {
 }
 
 func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.MovieWithActors, error) {
-	// sortBy : {}
-	//sqlQuery := "SELECT m.id AS movie_id FROM movies m " + fmt.Sprintf("ORDER BY %s", sortBy)
 	sqlQuery := `SELECT m.id AS "movie_id",
 	   m.name AS "movie_name",
 	   m.description AS "movie_description",
@@ -56,12 +54,57 @@ func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.MovieWithActors, err
 		tx.Rollback()
 		return nil, err
 	}
+
+	movies, err := mr.getMoviesWithActors(rows)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return movies, tx.Commit()
+}
+
+func (mr *MovieRepository) SearchMovie(moviePattern, actorPattern string) ([]m.MovieWithActors, error) {
+	sqlQuery := `SELECT m.id AS "movie_id",
+	   m.name AS "movie_name",
+	   m.description AS "movie_description",
+	   m.date AS "movie_date",
+	   m.rate AS "movie_rate",
+	   a.id AS "actor_id",
+	   a.name AS "actor_name",
+	   a.gender AS "actor_gender",
+	   a.birthday AS "actor_birthday"
+		FROM movies m
+		LEFT JOIN actors_to_movies am
+		ON am.movie_id = m.id
+		LEFT JOIN actors a
+		ON a.id = am.actor_id
+	` + fmt.Sprintf(` WHERE m.name LIKE '%%%s%%' AND a.name LIKE '%%%s%%'`, moviePattern, actorPattern)
+	// + fmt.Sprintf(` WHERE m.name LIKE '%%%s%%' AND a.name LIKE %%%s%%`, moviePattern, actorPattern)
+	tx, err := mr.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := tx.Query(sqlQuery)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	movies, err := mr.getMoviesWithActors(rows)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return movies, tx.Commit()
+}
+
+func (mr *MovieRepository) getMoviesWithActors(rows *sql.Rows) ([]m.MovieWithActors, error) {
 	movieToActors := make(map[m.Movie][]m.Actor)
 	for rows.Next() {
 		var rawMovie RawMovieWithActors
 		if err := rows.Scan(&rawMovie.MovieId, &rawMovie.MovieName, &rawMovie.MovieDescription, &rawMovie.MovieDate,
 			&rawMovie.MovieRate, &rawMovie.ActorId, &rawMovie.ActorName, &rawMovie.ActorGender, &rawMovie.ActorBirthday); err != nil {
-			tx.Rollback()
 			return nil, err
 		}
 		movie := m.Movie{Id: rawMovie.MovieId, Name: rawMovie.MovieName, Description: rawMovie.MovieDescription,
@@ -76,7 +119,7 @@ func (mr *MovieRepository) GetAllMovies(sortBy string) ([]m.MovieWithActors, err
 		movies = append(movies, m.NewMovieWithActors(movie, actors))
 	}
 
-	return movies, tx.Commit()
+	return movies, nil
 }
 
 func (mr *MovieRepository) CreateMovie(name, description, date string, rate int, actorIds []int) (int, error) {
@@ -244,17 +287,3 @@ func (mr *MovieRepository) AddActorToMovie(actorId, movieId int) error {
 	}
 	return tx.Commit()
 }
-
-func (mr *MovieRepository) SearchMovieByPattern(pattern string) ([]m.Movie, error) {
-	return nil, nil
-}
-
-func (mr *MovieRepository) SearchMovieByActorNamePattern(pattern string) ([]m.Movie, error) {
-	return nil, nil
-}
-
-/*
-TODO: подумать, как лучше: отдельно искать фильмы по кусочку названия и по фрагменту имени или сразу по тому и тому
-TODO: больше сколняюсь ко второму варианту - подумать как это будет работать
-
-*/

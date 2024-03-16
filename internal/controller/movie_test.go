@@ -25,11 +25,10 @@ func TestMovieRouter_AddMovie(t *testing.T) {
 	}
 
 	testTable := []struct {
-		name         string
-		inputMovie   inputMovie
-		inputBody    string
-		mockBehavior mockBehavior
-		//expectedMovieId      int
+		name                 string
+		inputMovie           inputMovie
+		inputBody            string
+		mockBehavior         mockBehavior
 		expectedStatusCode   int
 		expectedResponseBody string
 	}{
@@ -159,6 +158,149 @@ func TestMovieRouter_GetAllMovies(t *testing.T) {
 			// Test Request
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/movie-list", bytes.NewBufferString(tc.inputBody))
+
+			// Perform Request
+			router.ServeHTTP(w, req)
+
+			// Assert
+			assert.Equal(t, tc.expectedStatusCode, w.Code)
+			assert.Equal(t, tc.expectedResponseBody, w.Body.String())
+		})
+	}
+}
+
+func TestMovieRouter_ChangeField(t *testing.T) {
+	type mockBehavior func(s *mock_db.MockMovie, movieId int, field, newValue string)
+
+	type args struct {
+		MovieId  int
+		Field    string
+		NewValue string
+	}
+
+	testTable := []struct {
+		name                 string
+		args                 args
+		inputBody            string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name: "OK",
+			args: args{
+				MovieId:  1,
+				Field:    "name",
+				NewValue: "Sumerki",
+			},
+			inputBody: `{"movie_id":1,"field":"name","new_value":"Sumerki"}`,
+			mockBehavior: func(s *mock_db.MockMovie, movieId int, field, newValue string) {
+				s.EXPECT().ChangeField(movieId, field, newValue).Return(nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"message":"Field is changed"}`,
+		},
+		{
+			name: "Bad request",
+			args: args{
+				MovieId:  228,
+				Field:    "name",
+				NewValue: "Sumerki",
+			},
+			inputBody: `{"movie_id":228,"field":"name","new_value":"Sumerki"}`,
+			mockBehavior: func(s *mock_db.MockMovie, movieId int, field, newValue string) {
+				s.EXPECT().ChangeField(movieId, field, newValue).Return(errors.New("some error"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: http.StatusText(http.StatusInternalServerError) + "\n",
+		}}
+
+	for _, tc := range testTable {
+		t.Run(tc.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			movieRepos := mock_db.NewMockMovie(c)
+			tc.mockBehavior(movieRepos, tc.args.MovieId, tc.args.Field, tc.args.NewValue)
+
+			movieRouter := NewMovieRouter(movieRepos)
+
+			// Test Router
+			router := http.NewServeMux()
+			router.HandleFunc("POST /change-movie-field", movieRouter.ChangeField)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/change-movie-field", bytes.NewBufferString(tc.inputBody))
+
+			// Perform Request
+			router.ServeHTTP(w, req)
+
+			// Assert
+			assert.Equal(t, tc.expectedStatusCode, w.Code)
+			assert.Equal(t, tc.expectedResponseBody, w.Body.String())
+		})
+	}
+}
+
+func TestMovieRouter_SearchMovie(t *testing.T) {
+	type mockBehavior func(s *mock_db.MockMovie, moviePattern, actorPattern string)
+
+	testTable := []struct {
+		name                 string
+		moviePattern         string
+		actorPattern         string
+		inputBody            string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:         "OK",
+			moviePattern: "Сум",
+			actorPattern: "Val",
+			inputBody:    `{"movie_pattern":"Сум","actor_pattern":"Val"}`,
+			mockBehavior: func(s *mock_db.MockMovie, moviePattern, actorPattern string) {
+				response := []m.MovieWithActors{
+					{
+						MovieId:          11,
+						MovieName:        "Сумерки 4",
+						MovieDescription: "Кино для настоящих мужчин",
+						MovieDate:        "2012-10-10T00:00:00Z",
+						MovieRate:        0,
+						Actors: []m.Actor{
+							{
+								Id:       26,
+								Name:     "Valera",
+								Gender:   "male",
+								Birthday: "1988-01-01",
+							},
+						},
+					},
+				}
+				s.EXPECT().SearchMovie(moviePattern, actorPattern).Return(response, nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `[{"movie_id":11,"movie_name":"Сумерки 4","movie_description":"Кино для настоящих мужчин","movie_date":"2012-10-10T00:00:00Z","movie_rate":0,"actors":[{"id":26,"name":"Valera","gender":"male","Birthday":"1988-01-01"}]}]`,
+		},
+	}
+
+	for _, tc := range testTable {
+		t.Run(tc.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			movieRepos := mock_db.NewMockMovie(c)
+			tc.mockBehavior(movieRepos, tc.moviePattern, tc.actorPattern)
+
+			movieRouter := NewMovieRouter(movieRepos)
+
+			// Test Router
+			router := http.NewServeMux()
+			router.HandleFunc("POST /search-movie", movieRouter.SearchMovie)
+
+			// Test Request
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/search-movie", bytes.NewBufferString(tc.inputBody))
 
 			// Perform Request
 			router.ServeHTTP(w, req)

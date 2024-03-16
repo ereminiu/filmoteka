@@ -78,6 +78,17 @@ type getAllMoviesInput struct {
 	SortBy string `json:"sort_by"`
 }
 
+// @Summary Get All Movies
+// @Tags movies
+// @Description Return All Movies
+// @ID movie-list
+// @Accept  json
+// @Produce  json
+// @Param input body getAllMoviesInput true "sort_by param"
+// @Success 200 {object} []models.MovieWithActors
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /movie-list [post]
 func (mr *MovieRouter) GetAllMovies(w http.ResponseWriter, r *http.Request) {
 	var input getAllMoviesInput
 
@@ -140,7 +151,7 @@ func (mr *MovieRouter) ChangeField(w http.ResponseWriter, r *http.Request) {
 	err := mr.r.ChangeField(input.MovieId, input.Field, input.NewValue)
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
@@ -316,9 +327,48 @@ func (mr *MovieRouter) AddActorToMovie(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
-/*
-{
-	"field": "actor_id"
-	"actor_id": 228
+type searchMovieInput struct {
+	MoviePattern string `json:"movie_pattern,omitempty"`
+	ActorPattern string `json:"actor_pattern,omitempty"`
 }
-*/
+
+// @Summary Search Movie by movie and actor patterns
+// @Tags movies
+// @Description Return movies containing movie and actor patterns
+// @ID search-movies
+// @Accept  json
+// @Produce  json
+// @Param input body searchMovieInput true "movie_pattern and actor_pattern"
+// @Success 200 {object} []models.MovieWithActors
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /search-movies [post]
+func (mr *MovieRouter) SearchMovie(w http.ResponseWriter, r *http.Request) {
+	var input searchMovieInput
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&input); err != nil {
+		logrus.Error(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	logrus.Println(input)
+
+	movies, err := mr.r.SearchMovie(input.MoviePattern, input.ActorPattern)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	jsonResponse, err := json.Marshal(movies)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+}

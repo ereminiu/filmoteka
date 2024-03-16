@@ -90,8 +90,8 @@ func TestActorRepository_GetAllActors(t *testing.T) {
 
 			got, err := r.GetAllActors()
 
-			assert.Equal(t, tc.want, got)
 			assert.NoError(t, err)
+			assert.Equal(t, tc.want, got)
 		})
 	}
 }

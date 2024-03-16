@@ -461,6 +461,106 @@ const docTemplate = `{
                 }
             }
         },
+        "/movie-list": {
+            "post": {
+                "description": "Return All Movies",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get All Movies",
+                "operationId": "movie-list",
+                "parameters": [
+                    {
+                        "description": "sort_by param",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.getAllMoviesInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.MovieWithActors"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/search-movies": {
+            "post": {
+                "description": "Return movies containing movie and actor patterns",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Search Movie by movie and actor patterns",
+                "operationId": "search-movies",
+                "parameters": [
+                    {
+                        "description": "movie_pattern and actor_pattern",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.searchMovieInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.MovieWithActors"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/sign-in": {
             "post": {
                 "description": "login",
@@ -666,6 +766,14 @@ const docTemplate = `{
                 }
             }
         },
+        "controller.getAllMoviesInput": {
+            "type": "object",
+            "properties": {
+                "sort_by": {
+                    "type": "string"
+                }
+            }
+        },
         "controller.outputWithId": {
             "type": "object",
             "properties": {
@@ -681,6 +789,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.searchMovieInput": {
+            "type": "object",
+            "properties": {
+                "actor_pattern": {
+                    "type": "string"
+                },
+                "movie_pattern": {
                     "type": "string"
                 }
             }
@@ -741,6 +860,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "rate": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.MovieWithActors": {
+            "type": "object",
+            "properties": {
+                "actors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Actor"
+                    }
+                },
+                "movie_date": {
+                    "type": "string"
+                },
+                "movie_description": {
+                    "type": "string"
+                },
+                "movie_id": {
+                    "type": "integer"
+                },
+                "movie_name": {
+                    "type": "string"
+                },
+                "movie_rate": {
                     "type": "integer"
                 }
             }

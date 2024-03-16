@@ -120,34 +120,19 @@ func (mr *MockMovieMockRecorder) GetAllMovies(sortBy interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMovies", reflect.TypeOf((*MockMovie)(nil).GetAllMovies), sortBy)
 }
 
-// SearchMovieByActorNamePattern mocks base method.
-func (m *MockMovie) SearchMovieByActorNamePattern(pattern string) ([]models.Movie, error) {
+// SearchMovie mocks base method.
+func (m *MockMovie) SearchMovie(moviePattern, actorPattern string) ([]models.MovieWithActors, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchMovieByActorNamePattern", pattern)
-	ret0, _ := ret[0].([]models.Movie)
+	ret := m.ctrl.Call(m, "SearchMovie", moviePattern, actorPattern)
+	ret0, _ := ret[0].([]models.MovieWithActors)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SearchMovieByActorNamePattern indicates an expected call of SearchMovieByActorNamePattern.
-func (mr *MockMovieMockRecorder) SearchMovieByActorNamePattern(pattern interface{}) *gomock.Call {
+// SearchMovie indicates an expected call of SearchMovie.
+func (mr *MockMovieMockRecorder) SearchMovie(moviePattern, actorPattern interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchMovieByActorNamePattern", reflect.TypeOf((*MockMovie)(nil).SearchMovieByActorNamePattern), pattern)
-}
-
-// SearchMovieByPattern mocks base method.
-func (m *MockMovie) SearchMovieByPattern(pattern string) ([]models.Movie, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchMovieByPattern", pattern)
-	ret0, _ := ret[0].([]models.Movie)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SearchMovieByPattern indicates an expected call of SearchMovieByPattern.
-func (mr *MockMovieMockRecorder) SearchMovieByPattern(pattern interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchMovieByPattern", reflect.TypeOf((*MockMovie)(nil).SearchMovieByPattern), pattern)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchMovie", reflect.TypeOf((*MockMovie)(nil).SearchMovie), moviePattern, actorPattern)
 }
 
 // MockActor is a mock of Actor interface.

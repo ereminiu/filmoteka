@@ -65,6 +65,11 @@ definitions:
       movie_id:
         type: integer
     type: object
+  controller.getAllMoviesInput:
+    properties:
+      sort_by:
+        type: string
+    type: object
   controller.outputWithId:
     properties:
       id:
@@ -75,6 +80,13 @@ definitions:
   controller.outputWithMessage:
     properties:
       message:
+        type: string
+    type: object
+  controller.searchMovieInput:
+    properties:
+      actor_pattern:
+        type: string
+      movie_pattern:
         type: string
     type: object
   models.Actor:
@@ -114,6 +126,23 @@ definitions:
       name:
         type: string
       rate:
+        type: integer
+    type: object
+  models.MovieWithActors:
+    properties:
+      actors:
+        items:
+          $ref: '#/definitions/models.Actor'
+        type: array
+      movie_date:
+        type: string
+      movie_description:
+        type: string
+      movie_id:
+        type: integer
+      movie_name:
+        type: string
+      movie_rate:
         type: integer
     type: object
 info:
@@ -405,6 +434,72 @@ paths:
           schema:
             type: string
       summary: Get Reversed Name
+  /movie-list:
+    post:
+      consumes:
+      - application/json
+      description: Return All Movies
+      operationId: movie-list
+      parameters:
+      - description: sort_by param
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.getAllMoviesInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.MovieWithActors'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get All Movies
+      tags:
+      - movies
+  /search-movies:
+    post:
+      consumes:
+      - application/json
+      description: Return movies containing movie and actor patterns
+      operationId: search-movies
+      parameters:
+      - description: movie_pattern and actor_pattern
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.searchMovieInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.MovieWithActors'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Search Movie by movie and actor patterns
+      tags:
+      - movies
   /sign-in:
     post:
       consumes:

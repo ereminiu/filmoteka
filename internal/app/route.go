@@ -23,7 +23,7 @@ func NewRouter(repos *db.Repositories) *http.ServeMux {
 
 	// User group
 	router.HandleFunc("GET /actor-list", actorRouter.GetAllActors)
-	router.HandleFunc("POST /search-movie", empty)
+	router.HandleFunc("POST /search-movies", movieRouter.SearchMovie)
 	router.HandleFunc("POST /movie-list", movieRouter.GetAllMovies)
 
 	// Admin group
