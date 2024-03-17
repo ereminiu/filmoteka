@@ -20,8 +20,8 @@ func NewRouter(repos *db.Repositories, mig *db.Migrator) *http.ServeMux {
 
 	// Migrations
 	router.HandleFunc("POST /migrate-up", migrateRouter.MigrateUp)
-	router.HandleFunc("POST /migrate-down", empty)
-	router.HandleFunc("POST /migrate-force", empty)
+	router.HandleFunc("POST /migrate-down", migrateRouter.MigrateDown)
+	router.HandleFunc("POST /migrate-force", migrateRouter.MigrateForce)
 
 	// Authorization
 	router.HandleFunc("POST /sign-up", authRouter.CreateUser)
@@ -35,9 +35,8 @@ func NewRouter(repos *db.Repositories, mig *db.Migrator) *http.ServeMux {
 	// Admin group
 	router.HandleFunc("POST /add-actor", authRouter.UserIdentity(actorRouter.AddActor))
 	router.HandleFunc("POST /add-actor-to-movie", authRouter.UserIdentity(movieRouter.AddActorToMovie))
-	router.HandleFunc("PUT /change-actor-field", empty)
+	router.HandleFunc("PUT /change-actor-field", authRouter.UserIdentity(actorRouter.ChangeField))
 	router.HandleFunc("DELETE /delete-actor", authRouter.UserIdentity(actorRouter.DeleteActor))
-	router.HandleFunc("DELETE /delete-actor-field", empty)
 	router.HandleFunc("POST /add-movie", authRouter.UserIdentity(movieRouter.AddMovie))
 	router.HandleFunc("DELETE /delete-movie", authRouter.UserIdentity(movieRouter.DeleteMovie))
 	router.HandleFunc("DELETE /delete-movie-field", authRouter.UserIdentity(movieRouter.DeleteField))

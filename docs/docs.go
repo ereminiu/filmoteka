@@ -210,6 +210,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/change-actor-field": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "chanage actor field",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "actors"
+                ],
+                "summary": "Change Actor Field",
+                "operationId": "change-actor-field",
+                "parameters": [
+                    {
+                        "description": "actor_id field new_value",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.changeActorFieldInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.outputWithMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/change-movie-field": {
             "put": {
                 "security": [
@@ -795,6 +847,20 @@ const docTemplate = `{
                 },
                 "movie_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "controller.changeActorFieldInput": {
+            "type": "object",
+            "properties": {
+                "actor_id": {
+                    "type": "integer"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "new_value": {
+                    "type": "string"
                 }
             }
         },

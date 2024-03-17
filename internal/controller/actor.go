@@ -141,3 +141,53 @@ func (ar *ActorRouter) GetAllActors(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 }
+
+type changeActorFieldInput struct {
+	ActorId  int    `json:"actor_id"`
+	Field    string `json:"field"`
+	NewValue string `json:"new_value"`
+}
+
+// @Summary Change Actor Field
+// @Security ApiKeyAuth
+// @Tags actors
+// @Description chanage actor field
+// @ID change-actor-field
+// @Accept  json
+// @Produce  json
+// @Param input body changeActorFieldInput true "actor_id field new_value"
+// @Success 200 {object} outputWithMessage
+// @Failure 500 {string} string "Internal Server Error"
+// @Failure 400 {string} string "Bad request"
+// @Router /change-actor-field [put]
+func (ar *ActorRouter) ChangeField(w http.ResponseWriter, r *http.Request) {
+	var input changeActorFieldInput
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&input); err != nil {
+		logrus.Error(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	logrus.Println(input)
+
+	err := ar.r.ChangeField(input.ActorId, input.Field, input.NewValue)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, merrors.ErrDatabase.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	output := outputWithMessage{Message: "Field is changed"}
+
+	jsonResponse, err := json.Marshal(output)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+}

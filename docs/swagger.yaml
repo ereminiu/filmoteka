@@ -14,6 +14,15 @@ definitions:
       movie_id:
         type: integer
     type: object
+  controller.changeActorFieldInput:
+    properties:
+      actor_id:
+        type: integer
+      field:
+        type: string
+      new_value:
+        type: string
+    type: object
   controller.changeFieldInput:
     properties:
       field:
@@ -288,6 +297,39 @@ paths:
       summary: Create Movie
       tags:
       - movies
+  /change-actor-field:
+    put:
+      consumes:
+      - application/json
+      description: chanage actor field
+      operationId: change-actor-field
+      parameters:
+      - description: actor_id field new_value
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.changeActorFieldInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.outputWithMessage'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Change Actor Field
+      tags:
+      - actors
   /change-movie-field:
     put:
       consumes:

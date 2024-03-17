@@ -1,4 +1,4 @@
-CREATE TABLE movies (
+CREATE TABLE IF NOT EXISTS movies (
     id SERIAL PRIMARY KEY,
     name VARCHAR(101) NOT NULL DEFAULT '',
     description text NOT NULL DEFAULT '',
@@ -6,7 +6,7 @@ CREATE TABLE movies (
     rate INT NOT NULL DEFAULT(0)
 );
 
-CREATE TABLE actors (
+CREATE TABLE IF NOT EXISTS actors (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL DEFAULT '',
     gender VARCHAR(255) NOT NULL DEFAULT '',
@@ -14,14 +14,14 @@ CREATE TABLE actors (
     UNIQUE (name, birthday)
 );
 
-CREATE TABLE actors_to_movies (
+CREATE TABLE IF NOT EXISTS actors_to_movies (
     id SERIAL PRIMARY KEY,
     actor_id INT NOT NULL references actors,
     movie_id INT NOT NULL references movies,
     UNIQUE (actor_id, movie_id)
 );
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     uesrname VARCHAR(255) NOT NULL,

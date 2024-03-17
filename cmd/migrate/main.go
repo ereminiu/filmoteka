@@ -32,7 +32,7 @@ func main() {
 	}
 	// m.Down() - to discard changes
 	// m.Force() - to fix dirty version of migrations
-	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+	if err := m.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		log.Fatal(err)
 	}
 

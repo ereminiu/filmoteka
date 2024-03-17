@@ -8,7 +8,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/sirupsen/logrus"
-	"log"
 )
 
 type Migrator struct {
@@ -34,36 +33,27 @@ func NewMigrator(cfg *config.Config) (*Migrator, error) {
 
 func (mig *Migrator) Up() (uint, bool, error) {
 	if err := mig.m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Fatal(err)
-	}
-	version, dirty, err := mig.m.Version()
-	if err != nil {
 		logrus.Error(err)
 	}
+	version, dirty, _ := mig.m.Version()
 	logrus.Printf("Applied migration: %d, Dirty: %t", version, dirty)
-	return version, dirty, err
+	return version, dirty, nil
 }
 
 func (mig *Migrator) Down() (uint, bool, error) {
-	if err := mig.m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Fatal(err)
-	}
-	version, dirty, err := mig.m.Version()
-	if err != nil {
+	if err := mig.m.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		logrus.Error(err)
 	}
+	version, dirty, _ := mig.m.Version()
 	logrus.Printf("Applied migration: %d, Dirty: %t", version, dirty)
-	return version, dirty, err
+	return version, dirty, nil
 }
 
 func (mig *Migrator) Force(v int) (uint, bool, error) {
 	if err := mig.m.Force(v); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Fatal(err)
-	}
-	version, dirty, err := mig.m.Version()
-	if err != nil {
 		logrus.Error(err)
 	}
+	version, dirty, _ := mig.m.Version()
 	logrus.Printf("Applied migration: %d, Dirty: %t", version, dirty)
-	return version, dirty, err
+	return version, dirty, nil
 }

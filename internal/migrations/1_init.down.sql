@@ -1,7 +1,7 @@
-DROP TABLE actors_to_movies;
+DROP TABLE IF EXISTS actors_to_movies;
 
-DROP TABLE movies;
+DROP TABLE IF EXISTS movies;
 
-DROP TABLE actors;
+DROP TABLE IF EXISTS actors;
 
-DROP TABLE users;
+DROP TABLE IF EXISTS users;

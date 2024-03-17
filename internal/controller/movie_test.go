@@ -242,6 +242,189 @@ func TestMovieRouter_ChangeField(t *testing.T) {
 	}
 }
 
+func TestMovieRouter_DeleteMovie(t *testing.T) {
+	type mockBehavior func(s *mock_db.MockMovie, movieId int)
+
+	testTable := []struct {
+		name                 string
+		movieId              int
+		inputBody            string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:      "OK",
+			movieId:   1,
+			inputBody: `{"movie_id":1}`,
+			mockBehavior: func(s *mock_db.MockMovie, movieId int) {
+				s.EXPECT().DeleteMovie(movieId).Return(nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"message":"Movie is deleted"}`,
+		},
+		{
+			name:      "Internal Error",
+			movieId:   1,
+			inputBody: `{"movie_id":1}`,
+			mockBehavior: func(s *mock_db.MockMovie, movieId int) {
+				s.EXPECT().DeleteMovie(movieId).Return(errors.New("some error"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: http.StatusText(http.StatusInternalServerError) + "\n",
+		},
+	}
+	for _, tc := range testTable {
+		t.Run(tc.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			movieRepos := mock_db.NewMockMovie(c)
+			tc.mockBehavior(movieRepos, tc.movieId)
+
+			movieRouter := NewMovieRouter(movieRepos)
+
+			// Test Router
+			router := http.NewServeMux()
+			router.HandleFunc("DELETE /delete-movie", movieRouter.DeleteMovie)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("DELETE", "/delete-movie", bytes.NewBufferString(tc.inputBody))
+
+			// Perform Request
+			router.ServeHTTP(w, req)
+
+			// Assert
+			assert.Equal(t, tc.expectedStatusCode, w.Code)
+			assert.Equal(t, tc.expectedResponseBody, w.Body.String())
+		})
+	}
+}
+
+func TestMovieRouter_DeleteField(t *testing.T) {
+	type mockBehavior func(s *mock_db.MockMovie, movieId int, field string)
+
+	testTable := []struct {
+		name                 string
+		movieId              int
+		field                string
+		inputBody            string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:      "OK",
+			movieId:   1,
+			field:     "date",
+			inputBody: `{"movie_id":1,"field":"date"}`,
+			mockBehavior: func(s *mock_db.MockMovie, movieId int, field string) {
+				s.EXPECT().DeleteField(movieId, field).Return(nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"message":"Field is deleted"}`,
+		},
+		{
+			name:      "Internal Error",
+			movieId:   1,
+			field:     "date",
+			inputBody: `{"movie_id":1,"field":"date"}`,
+			mockBehavior: func(s *mock_db.MockMovie, movieId int, field string) {
+				s.EXPECT().DeleteField(movieId, field).Return(errors.New("some error"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: http.StatusText(http.StatusInternalServerError) + "\n",
+		},
+	}
+	for _, tc := range testTable {
+		t.Run(tc.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			movieRepos := mock_db.NewMockMovie(c)
+			tc.mockBehavior(movieRepos, tc.movieId, tc.field)
+
+			movieRouter := NewMovieRouter(movieRepos)
+
+			// Test Router
+			router := http.NewServeMux()
+			router.HandleFunc("DELETE /delete-movie-field", movieRouter.DeleteField)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("DELETE", "/delete-movie-field", bytes.NewBufferString(tc.inputBody))
+
+			// Perform Request
+			router.ServeHTTP(w, req)
+
+			// Assert
+			assert.Equal(t, tc.expectedStatusCode, w.Code)
+			assert.Equal(t, tc.expectedResponseBody, w.Body.String())
+		})
+	}
+}
+
+func TestMovieRouter_AddActorToMovie(t *testing.T) {
+	type mockBehavior func(s *mock_db.MockMovie, movieId, actorId int)
+
+	testTable := []struct {
+		name                 string
+		movieId              int
+		actorId              int
+		inputBody            string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:      "OK",
+			movieId:   1,
+			actorId:   1,
+			inputBody: `{"actor_id":1,"movie_id":1}`,
+			mockBehavior: func(s *mock_db.MockMovie, movieId, actorId int) {
+				s.EXPECT().AddActorToMovie(actorId, movieId).Return(nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"message":"Actor 1 added to the movie 1"}`,
+		},
+		{
+			name:      "Internal Error",
+			movieId:   1,
+			actorId:   1,
+			inputBody: `{"actor_id":1,"movie_id":1}`,
+			mockBehavior: func(s *mock_db.MockMovie, movieId, actorId int) {
+				s.EXPECT().AddActorToMovie(actorId, movieId).Return(errors.New("some error"))
+			},
+			expectedStatusCode:   500,
+			expectedResponseBody: http.StatusText(http.StatusInternalServerError) + "\n",
+		},
+	}
+	for _, tc := range testTable {
+		t.Run(tc.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			movieRepos := mock_db.NewMockMovie(c)
+			tc.mockBehavior(movieRepos, tc.actorId, tc.movieId)
+
+			movieRouter := NewMovieRouter(movieRepos)
+
+			// Test Router
+			router := http.NewServeMux()
+			router.HandleFunc("POST /add-actor-to-movie", movieRouter.AddActorToMovie)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/add-actor-to-movie", bytes.NewBufferString(tc.inputBody))
+
+			// Perform Request
+			router.ServeHTTP(w, req)
+
+			// Assert
+			assert.Equal(t, tc.expectedStatusCode, w.Code)
+			assert.Equal(t, tc.expectedResponseBody, w.Body.String())
+		})
+	}
+}
+
 func TestMovieRouter_SearchMovie(t *testing.T) {
 	type mockBehavior func(s *mock_db.MockMovie, moviePattern, actorPattern string)
 

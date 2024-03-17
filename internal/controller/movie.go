@@ -203,7 +203,7 @@ func (mr *MovieRouter) DeleteMovie(w http.ResponseWriter, r *http.Request) {
 	err := mr.r.DeleteMovie(input.MovieId)
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
@@ -260,7 +260,7 @@ func (mr *MovieRouter) DeleteField(w http.ResponseWriter, r *http.Request) {
 	err := mr.r.DeleteField(input.MovieId, field)
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
@@ -309,7 +309,7 @@ func (mr *MovieRouter) AddActorToMovie(w http.ResponseWriter, r *http.Request) {
 	err := mr.r.AddActorToMovie(input.ActorId, input.MovieId)
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 

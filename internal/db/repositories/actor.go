@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	m "github.com/ereminiu/filmoteka/internal/models"
 )
 
@@ -113,12 +114,18 @@ func (ar *ActorRepository) getActorId(tx *sql.Tx, name, gender, birthday string)
 	return actorId, nil
 }
 
-func (ar *ActorRepository) ChangeField(field, newValue string) error {
-	return nil
-}
-
-func (ar *ActorRepository) DeleteField(field string) error {
-	return nil
+func (ar *ActorRepository) ChangeField(actorId int, field, newValue string) error {
+	sqlQuery := `UPDATE actors ` + fmt.Sprintf(`SET %s=$1 WHERE id=$2`, field)
+	tx, err := ar.db.Begin()
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(sqlQuery, newValue, actorId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func (ar *ActorRepository) DeleteActor(actorId int) error {
