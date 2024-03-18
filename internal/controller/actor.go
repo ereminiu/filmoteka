@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/ereminiu/filmoteka/internal/db"
 	merrors "github.com/ereminiu/filmoteka/internal/db/errors"
-	m "github.com/ereminiu/filmoteka/internal/models"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -17,6 +16,12 @@ func NewActorRouter(r db.Actor) *ActorRouter {
 	return &ActorRouter{r: r}
 }
 
+type addActorInput struct {
+	Name     string `json:"name"`
+	Gender   string `json:"gender"`
+	Birthday string `json:"Birthday"`
+}
+
 // @Summary Create Actor
 // @Security ApiKeyAuth
 // @Tags actors
@@ -24,13 +29,13 @@ func NewActorRouter(r db.Actor) *ActorRouter {
 // @ID add-actor
 // @Accept  json
 // @Produce  json
-// @Param input body models.Actor true "actor data"
+// @Param input body addActorInput true "actor data"
 // @Success 200 {integer} integer 1
 // @Failure 500 {string} string "Internal Server Error"
 // @Failure 400 {string} string "Bad request"
 // @Router /add-actor [post]
 func (ar *ActorRouter) AddActor(w http.ResponseWriter, r *http.Request) {
-	var input m.Actor
+	var input addActorInput
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&input); err != nil {
