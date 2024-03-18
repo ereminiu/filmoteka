@@ -80,7 +80,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Actor"
+                            "$ref": "#/definitions/controller.addActorInput"
                         }
                     }
                 ],
@@ -470,49 +470,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/hello": {
-            "post": {
-                "description": "reversing the given name",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Get Reversed Name",
-                "parameters": [
-                    {
-                        "description": "username and age",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/app.userInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/app.userInput"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/migrate-down": {
             "post": {
                 "description": "Apply to Migrate Down",
@@ -828,11 +785,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "app.userInput": {
+        "controller.addActorInput": {
             "type": "object",
             "properties": {
-                "age": {
-                    "type": "integer"
+                "Birthday": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"

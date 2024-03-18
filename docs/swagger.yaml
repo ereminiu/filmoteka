@@ -1,9 +1,11 @@
 basePath: /
 definitions:
-  app.userInput:
+  controller.addActorInput:
     properties:
-      age:
-        type: integer
+      Birthday:
+        type: string
+      gender:
+        type: string
       name:
         type: string
     type: object
@@ -210,7 +212,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/models.Actor'
+          $ref: '#/definitions/controller.addActorInput'
       produces:
       - application/json
       responses:
@@ -462,34 +464,6 @@ paths:
       summary: Delete Actor
       tags:
       - movies
-  /hello:
-    post:
-      consumes:
-      - application/json
-      description: reversing the given name
-      parameters:
-      - description: username and age
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/app.userInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/app.userInput'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Get Reversed Name
   /migrate-down:
     post:
       description: Apply to Migrate Down
