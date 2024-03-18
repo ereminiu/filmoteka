@@ -39,12 +39,12 @@ func setUpLogger() {
 func runServer(router *http.ServeMux) {
 	srv := &http.Server{
 		Handler:      router,
-		Addr:         "localhost:3000",
+		Addr:         ":3000",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
-	logrus.Printf("Server is starting at http://%s", srv.Addr)
+	logrus.Printf("Server is starting at http://localhost%s", srv.Addr)
 	logrus.Fatalln(srv.ListenAndServe())
 }
 

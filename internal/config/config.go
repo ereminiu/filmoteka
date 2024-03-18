@@ -40,3 +40,7 @@ func LoadConfigs() (*Config, error) {
 	}
 	return &cfg, nil
 }
+
+func (cfg *Config) GetApiAdress() string {
+	return "localhost:" + cfg.Port
+}
