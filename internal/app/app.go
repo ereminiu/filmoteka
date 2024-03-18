@@ -54,7 +54,7 @@ func Run() {
 	setUpLogger()
 
 	// load config
-	config, err := config2.LoadConfigs("test") // TODO: CHANGE IT TO "prod"
+	config, err := config2.LoadConfigs()
 	if err != nil {
 		logrus.Error(config)
 	}

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"os"
 
 	"github.com/go-yaml/yaml"
@@ -21,15 +20,15 @@ const (
 	prodPath = "./config/prod.yaml"
 )
 
-func LoadConfigs(mode string) (*Config, error) {
-	var path string
-	if mode == "test" {
-		path = testPath
-	} else if mode == "prod" {
-		path = prodPath
-	} else {
-		return nil, errors.New("unknown mode")
+func getPath() string {
+	if os.Getenv("MODE") == "prod" {
+		return prodPath
 	}
+	return testPath
+}
+
+func LoadConfigs() (*Config, error) {
+	path := getPath()
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err

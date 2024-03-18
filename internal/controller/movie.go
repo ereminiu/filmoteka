@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ereminiu/filmoteka/internal/controller/validation"
 	"github.com/ereminiu/filmoteka/internal/db"
 	merrors "github.com/ereminiu/filmoteka/internal/db/errors"
 	"github.com/sirupsen/logrus"
@@ -25,6 +26,21 @@ type createMovieInput struct {
 	Actors      []int  `json:"actors,omitempty"`
 }
 
+func (cmi *createMovieInput) Validate() error {
+	fields := map[string]any{
+		"rate":        cmi.Rate,
+		"description": cmi.Description,
+		"name":        cmi.Name,
+	}
+	for key, val := range fields {
+		err := validation.IsValidField(key, val)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // @Summary Create Movie
 // @Security ApiKeyAuth
 // @Tags movies
@@ -44,6 +60,11 @@ func (mr *MovieRouter) AddMovie(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&input); err != nil {
 		logrus.Error(err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	if err := input.Validate(); err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	logrus.Println(input)
@@ -144,6 +165,11 @@ func (mr *MovieRouter) ChangeField(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&input); err != nil {
 		logrus.Error(err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	if err := validation.IsValidField(input.Field, input.NewValue); err != nil {
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	logrus.Println(input)
