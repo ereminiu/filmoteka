@@ -1,4 +1,4 @@
-# VK GO assignment
+# VK Golang assignment
 
 ## TODO
 
